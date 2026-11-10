@@ -1,0 +1,673 @@
+<title>Black Hole Detective</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<script>
+  try { document.documentElement.dataset.lang = localStorage.getItem('bhd-lang') || 'both'; }
+  catch (e) { document.documentElement.dataset.lang = 'both'; }
+</script>
+<style>
+/* Layout: one reading column; the hero pairs the explanation with a dark "sky plate" simulator, like an observatory screen. */
+:root {
+  --bg: #f4f5fa;          /* cool paper, slight indigo bias */
+  --surface: #ffffff;
+  --ink: #141a2e;
+  --ink-2: #4b5272;
+  --ink-3: #7a8099;
+  --line: #dde0ec;
+  --accent: #3946c8;       /* controls, links */
+  --star: #f2b33a;         /* the visible star (gold) */
+  --bh: #2a78d6;           /* confirmed black holes (blue) */
+  --cand: #e34948;         /* candidates (red) */
+  --warn: #b97400;         /* suspicious status */
+  --plate: #0e1430;        /* the night-sky simulator panel */
+  --plate-ink: #d9def2;
+  --plate-line: #2a3360;
+  --chip: #eceef7;
+  --display: "Bricolage Grotesque", "Noto Sans SC", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Noto Sans SC", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", "Noto Sans SC", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0f1f; --surface: #131a31; --ink: #e8ebf6; --ink-2: #aab1cb; --ink-3: #7d84a1; --line: #252e52;
+    --accent: #8e9bff; --star: #f5be4f; --bh: #3987e5; --cand: #e66767; --warn: #e0a23a;
+    --plate: #060a1a; --plate-ink: #d9def2; --plate-line: #232c55; --chip: #1b2342; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0f1f; --surface: #131a31; --ink: #e8ebf6; --ink-2: #aab1cb; --ink-3: #7d84a1; --line: #252e52;
+  --accent: #8e9bff; --star: #f5be4f; --bh: #3987e5; --cand: #e66767; --warn: #e0a23a;
+  --plate: #060a1a; --plate-ink: #d9def2; --plate-line: #232c55; --chip: #1b2342; color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 64px; }
+
+/* language switching */
+:root[data-lang="en"] .zh, :root[data-lang="zh"] .en { display: none; }
+:root[data-lang="both"] .zh { display: block; color: var(--ink-2); font-size: .93em; margin-top: .15em; }
+:root[data-lang="both"] .il .zh { display: inline; margin: 0; font-size: inherit; color: inherit; }
+:root[data-lang="both"] .il .zh::before { content: " · "; opacity: .55; }
+
+/* top bar */
+.topbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding-block: 18px; border-bottom: 1px solid var(--line); }
+.brand { font-family: var(--mono); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface); }
+.seg button { border: 0; background: transparent; color: var(--ink-2); font: 500 14px var(--body); padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+:root[data-theme="dark"] .seg button[aria-pressed="true"] { color: #0b0f1f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .seg button[aria-pressed="true"] { color: #0b0f1f; } }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* type */
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 700; letter-spacing: -.02em; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-weight: 700; letter-spacing: -.01em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+:root[data-lang="both"] h1 .zh { font-size: .55em; font-weight: 500; margin-top: .3em; color: var(--ink-2); }
+:root[data-lang="both"] h2 .zh { font-size: .7em; font-weight: 500; }
+:root[data-lang="both"] h3 .zh { font-size: .85em; font-weight: 500; }
+p { margin: 0; max-width: 65ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.muted { color: var(--ink-2); }
+.small { font-size: 14px; }
+section { padding-block: 56px 8px; display: grid; gap: 20px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 36px; padding-block: 40px 8px; align-items: start; }
+.hero-text { display: grid; gap: 18px; min-width: 0; }
+@media (max-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+
+/* simulator */
+.plate { background: var(--plate); color: var(--plate-ink); border-radius: 14px; overflow: hidden; display: grid; }
+.plate canvas { width: 100%; aspect-ratio: 1 / 0.86; display: block; max-width: 100%; }
+.plate-foot { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; padding: 10px 14px 12px; border-top: 1px solid var(--plate-line); font-size: 13px; }
+.plate-foot button { background: transparent; border: 1px solid var(--plate-line); color: var(--plate-ink); border-radius: 8px; padding: 5px 12px; font: 500 13px var(--body); cursor: pointer; }
+.controls { display: grid; gap: 14px; }
+.ctrl { display: grid; gap: 4px; }
+.ctrl-head { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 500; }
+.ctrl-head output { font-family: var(--mono); color: var(--ink); white-space: nowrap; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; }
+.chipbtn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 5px 12px; font: 500 13px var(--body); cursor: pointer; }
+.chipbtn:hover { border-color: var(--accent); }
+.toggle { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; cursor: pointer; }
+.toggle input { margin-top: 4px; accent-color: var(--accent); }
+
+.readouts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.ro { background: var(--surface); padding: 12px 14px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.ro .lab { font-size: 13px; color: var(--ink-2); line-height: 1.35; }
+.ro .val { font-family: var(--mono); font-size: 1.35rem; font-weight: 500; }
+.ro .hint { font-size: 12px; color: var(--ink-3); line-height: 1.35; }
+@media (max-width: 560px) { .readouts { grid-template-columns: minmax(0, 1fr); } }
+.verdict { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 15px; }
+.badge { flex: none; font: 600 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; color: #fff; margin-top: 2px; }
+.b-bh { background: var(--bh); } .b-ns { background: var(--warn); } .b-star { background: var(--ink-3); }
+.formula { font-family: var(--mono); font-size: 14px; color: var(--ink-2); }
+
+/* steps */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; gap: 8px; align-content: start; padding-top: 14px; border-top: 2px solid var(--ink); min-width: 0; }
+.steps li::before { content: counter(step); font: 500 13px var(--mono); color: var(--accent); }
+.steps p { font-size: 14.5px; color: var(--ink-2); }
+@media (max-width: 900px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+
+/* chart */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; color: var(--ink-2); }
+.legend span.k { display: inline-flex; gap: 8px; align-items: center; }
+.sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+.chartbox { position: relative; }
+.chartbox canvas { width: 100%; height: 440px; display: block; touch-action: manipulation; }
+@media (max-width: 600px) { .chartbox canvas { height: 340px; } }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 13px; line-height: 1.45; padding: 8px 10px; border-radius: 8px; max-width: 240px; transform: translate(-50%, calc(-100% - 12px)); }
+.tip b { font-family: var(--mono); font-weight: 500; }
+
+/* stat comparison */
+.compare { display: grid; gap: 10px; }
+.barrow { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) 3.5rem; gap: 12px; align-items: center; font-size: 14px; }
+.bar { height: 14px; background: var(--chip); border-radius: 4px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--cand); border-radius: 0 4px 4px 0; }
+@media (max-width: 560px) { .barrow { grid-template-columns: minmax(0, 1fr) 3.5rem; } .barrow .bar { grid-column: 1 / -1; grid-row: 2; } }
+
+/* cases */
+.cases { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.case { position: relative; text-align: left; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 8px 10px; cursor: pointer; display: grid; gap: 1px; font: 13px var(--body); }
+.case .r { font: 500 12px var(--mono); color: var(--ink-3); }
+.case .m { font: 500 14px var(--mono); }
+.case .nm { font-size: 12px; color: var(--bh); font-weight: 600; }
+.case[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.case .dot { position: absolute; top: 9px; right: 9px; width: 9px; height: 9px; border-radius: 50%; }
+.casefile { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 760px) { .casefile { grid-template-columns: minmax(0, 1fr); } }
+.facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 16px; margin: 0; font-size: 14.5px; }
+.facts dt { color: var(--ink-2); }
+.facts dd { margin: 0; font-family: var(--mono); overflow-wrap: anywhere; }
+.guess { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 10px; padding: 9px 16px; font: 600 14px var(--body); cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--accent); }
+:root[data-theme="dark"] .btn:not(.ghost) { color: #0b0f1f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn:not(.ghost) { color: #0b0f1f; } }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14.5px; }
+.checks li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; }
+.ic { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 700 13px var(--mono); margin-top: 1px; }
+.ic.on { background: var(--cand); color: #fff; }
+.ic.off { background: var(--chip); color: var(--ink-3); }
+.checks li.off { color: var(--ink-3); }
+.outcome { border-radius: 12px; padding: 12px 14px; border: 1px solid var(--line); display: grid; gap: 6px; font-size: 15px; }
+.outcome .fb { font-weight: 600; }
+.waiting { color: var(--ink-3); font-size: 14.5px; border: 1px dashed var(--line); border-radius: 12px; padding: 14px; }
+
+/* glossary */
+.gloss { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.gloss th, .gloss td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.gloss th { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.gloss td:first-child { font-weight: 600; white-space: nowrap; }
+.gloss td.zhcol { font-weight: 600; white-space: nowrap; }
+.tablewrap { overflow-x: auto; }
+:root[data-lang="en"] .gloss .zhcol, :root[data-lang="zh"] .gloss .encol { display: none; }
+
+footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); display: grid; gap: 8px; }
+footer a, a { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand il"><span class="en">CS85 · Project 22</span><span class="zh" lang="zh-Hans">CS85 · 第 22 号项目</span></div>
+    <div class="seg" role="group" aria-label="Language / 语言">
+      <button type="button" id="lang-en" data-lang-btn="en">English</button>
+      <button type="button" id="lang-zh" data-lang-btn="zh">中文</button>
+      <button type="button" id="lang-both" data-lang-btn="both">EN + 中文</button>
+    </div>
+  </header>
+
+  <!-- HERO + SIMULATOR -->
+  <div class="hero">
+    <div class="hero-text">
+      <div class="eyebrow il"><span class="en">Gaia Data Release 3</span><span class="zh" lang="zh-Hans">Gaia 第三次数据发布</span></div>
+      <h1><span class="en">Black Hole Detective</span><span class="zh" lang="zh-Hans">黑洞侦探</span></h1>
+      <p><span class="en">A black hole that isn't swallowing anything gives off no light at all. But its gravity still pulls on any star orbiting it, so that star traces a tiny loop on the sky. The Gaia space telescope measures those loops. This page shows, step by step, how astronomers use them to find black holes nobody can see.</span><span class="zh" lang="zh-Hans">一个没有在吞噬物质的黑洞完全不发光。但它的引力仍然拉着绕它运行的恒星，让这颗恒星在天空中画出一个微小的圈。盖亚（Gaia）空间望远镜能测量这些小圈。这个页面一步步展示天文学家怎样利用它们，找到谁也看不见的黑洞。</span></p>
+
+      <h3><span class="en">Try it: the wobble machine</span><span class="zh" lang="zh-Hans">动手试试：摆动模拟器</span></h3>
+      <p class="small muted"><span class="en">The gold star is the only thing Gaia can see. Its hidden partner pulls it around a shared balance point (+). Make the partner heavier and watch the star's loop grow.</span><span class="zh" lang="zh-Hans">金色的恒星是 Gaia 唯一能看到的天体。它看不见的伴星拉着它绕一个共同的平衡点（+）转动。把伴星调重一些，看看恒星画的圈怎样变大。</span></p>
+
+      <div class="controls">
+        <div class="ctrl">
+          <div class="ctrl-head"><label for="m2" class="il"><span class="en">Hidden partner's mass</span><span class="zh" lang="zh-Hans">伴星质量</span></label><output id="m2-out"></output></div>
+          <input type="range" id="m2" min="0" max="1000" value="0">
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-head"><label for="m1" class="il"><span class="en">Visible star's mass</span><span class="zh" lang="zh-Hans">可见恒星质量</span></label><output id="m1-out"></output></div>
+          <input type="range" id="m1" min="0.5" max="2" step="0.01" value="0.93">
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-head"><label for="per" class="il"><span class="en">Orbital period (time for one loop)</span><span class="zh" lang="zh-Hans">轨道周期（转一圈的时间）</span></label><output id="per-out"></output></div>
+          <input type="range" id="per" min="0" max="1000" value="0">
+        </div>
+        <div class="presets">
+          <span class="muted il"><span class="en">Try:</span><span class="zh" lang="zh-Hans">试试：</span></span>
+          <button type="button" class="chipbtn il" data-preset="sun"><span class="en">Sun-like partner</span><span class="zh" lang="zh-Hans">类太阳伴星</span></button>
+          <button type="button" class="chipbtn il" data-preset="ns"><span class="en">Neutron star</span><span class="zh" lang="zh-Hans">中子星</span></button>
+          <button type="button" class="chipbtn il" data-preset="bh1"><span class="en">Like Gaia BH1</span><span class="zh" lang="zh-Hans">类似 Gaia BH1</span></button>
+          <button type="button" class="chipbtn il" data-preset="bh2"><span class="en">Like Gaia BH2</span><span class="zh" lang="zh-Hans">类似 Gaia BH2</span></button>
+        </div>
+        <label class="toggle"><input type="checkbox" id="reveal"><span><span class="en">Reveal the hidden partner (Gaia can't do this!)</span><span class="zh" lang="zh-Hans">显示隐藏的伴星（Gaia 做不到这一点！）</span></span></label>
+      </div>
+    </div>
+
+    <div style="display:grid; gap:14px; min-width:0">
+      <div class="plate">
+        <canvas id="sim" aria-label="Animated simulation of a star orbiting an unseen partner"></canvas>
+        <div class="plate-foot">
+          <span><span class="en">Simulation from Kepler's law, not real data. Loops are enlarged millions of times.</span><span class="zh" lang="zh-Hans">根据开普勒定律的模拟，不是真实数据。圈被放大了几百万倍。</span></span>
+          <button type="button" id="pause" class="il"><span class="en">Pause</span><span class="zh" lang="zh-Hans">暂停</span></button>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="ro">
+          <div class="lab"><span class="en">Size of the star's loop</span><span class="zh" lang="zh-Hans">恒星绕圈的大小</span></div>
+          <div class="val" id="ro-a1"></div>
+          <div class="hint"><span class="en">1 AU = Earth–Sun distance</span><span class="zh" lang="zh-Hans">1 天文单位 = 地球到太阳的距离</span></div>
+        </div>
+        <div class="ro">
+          <div class="lab"><span class="en">What Gaia sees from 1,560 light-years</span><span class="zh" lang="zh-Hans">从 1,560 光年外，Gaia 看到的大小</span></div>
+          <div class="val" id="ro-mas"></div>
+          <div class="hint"><span class="en">1 milliarcsecond ≈ a coin seen from 5,000 km away</span><span class="zh" lang="zh-Hans">1 毫角秒 ≈ 从 5,000 公里外看一枚硬币</span></div>
+        </div>
+        <div class="ro">
+          <div class="lab"><span class="en">Mass function: the least the partner can weigh</span><span class="zh" lang="zh-Hans">质量函数：伴星最少有多重</span></div>
+          <div class="val" id="ro-fm"></div>
+          <div class="hint formula">f = a³ ÷ P²</div>
+        </div>
+      </div>
+      <div class="verdict" id="verdict" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <section>
+    <div class="eyebrow il"><span class="en">The method</span><span class="zh" lang="zh-Hans">方法</span></div>
+    <h2><span class="en">How the detective work goes</span><span class="zh" lang="zh-Hans">侦探工作的五个步骤</span></h2>
+    <ol class="steps">
+      <li><h3><span class="en">Watch the star wobble</span><span class="zh" lang="zh-Hans">观察恒星的摆动</span></h3>
+        <p><span class="en">From 2014 to 2017, Gaia measured the positions of about 1.8 billion stars again and again. For 169,208 binaries with well-measured distances, it fitted an orbit to the wobble.</span><span class="zh" lang="zh-Hans">2014 至 2017 年间，Gaia 反复测量了约 18 亿颗恒星的位置。对其中 169,208 个距离测得较准的双星，它为摆动拟合出了轨道。</span></p></li>
+      <li><h3><span class="en">Turn the loop into a mass</span><span class="zh" lang="zh-Hans">把圈换算成质量</span></h3>
+        <p><span class="en">Loop size, distance and period go into Kepler's law. Out comes the mass function: the least the hidden partner can weigh.</span><span class="zh" lang="zh-Hans">把圈的大小、距离和周期代入开普勒定律，就得到质量函数：隐藏伴星最少有多重。</span></p></li>
+      <li><h3><span class="en">Ask: is the partner dark?</span><span class="zh" lang="zh-Hans">问：伴星是暗的吗？</span></h3>
+        <p><span class="en">A normal star over 3 Suns would shine brightly, and neutron stars can't weigh more than about 3 Suns. So a dark partner above 3 Suns must be a black hole.</span><span class="zh" lang="zh-Hans">超过 3 倍太阳质量的普通恒星会非常亮，而中子星最多约 3 倍太阳质量。所以，一个超过 3 倍太阳质量又不发光的伴星，一定是黑洞。</span></p></li>
+      <li><h3><span class="en">Rule out glitches</span><span class="zh" lang="zh-Hans">排除测量假象</span></h3>
+        <p><span class="en">Most candidates turn out to be measurement problems. Astronomers check each one for warning signs.</span><span class="zh" lang="zh-Hans">大多数候选者其实是测量出了问题。天文学家会逐一检查它们的警示信号。</span></p></li>
+      <li><h3><span class="en">Confirm with another telescope</span><span class="zh" lang="zh-Hans">用其他望远镜确认</span></h3>
+        <p><span class="en">Ground telescopes measure the star's speed from tiny colour shifts in its light (the Doppler effect). Gaia BH1 and BH2 were confirmed this way in 2022–2023.</span><span class="zh" lang="zh-Hans">地面望远镜通过恒星光线颜色的微小变化（多普勒效应）测出它的速度。Gaia BH1 和 BH2 就是在 2022–2023 年这样被确认的。</span></p></li>
+    </ol>
+  </section>
+
+  <!-- REAL DATA -->
+  <section>
+    <div class="eyebrow il"><span class="en">Real measurements</span><span class="zh" lang="zh-Hans">真实测量</span></div>
+    <h2><span class="en">What Gaia actually found</span><span class="zh" lang="zh-Hans">Gaia 的真实发现</span></h2>
+    <p><span class="en">Each grey dot is a real binary star from Gaia Data Release 3 (4,000 of the 169,208 below the 3-Sun line, picked at random). Red dots are all 19 binaries whose mass function is above 3 Suns. Blue stars are the two confirmed black holes. Hover over or tap a red dot for details; click it to open its case file below.</span><span class="zh" lang="zh-Hans">每个灰点都是 Gaia 第三次数据发布（DR3）中的一个真实双星（从 3 倍太阳质量线以下的双星中随机显示 4,000 个，总数为 169,208）。红点是质量函数超过 3 倍太阳质量的全部 19 个双星。蓝色星形是两个已确认的黑洞。把鼠标移到红点上（或轻点）可看详情，点击可在下方打开它的案件档案。</span></p>
+    <div class="card">
+      <div class="legend">
+        <span class="k"><i class="sw" style="background:var(--ink-3)"></i><span class="il"><span class="en">Ordinary binaries</span><span class="zh" lang="zh-Hans">普通双星</span></span></span>
+        <span class="k"><i class="sw" style="background:var(--cand)"></i><span class="il"><span class="en">Candidates above 3 Suns (19)</span><span class="zh" lang="zh-Hans">超过 3 倍太阳质量的候选者（19 个）</span></span></span>
+        <span class="k"><i class="sw" style="background:var(--bh); border-radius:2px; transform:rotate(45deg)"></i><span class="il"><span class="en">Confirmed black holes</span><span class="zh" lang="zh-Hans">已确认的黑洞</span></span></span>
+      </div>
+      <div class="chartbox" id="chartbox">
+        <canvas id="chart" role="img" aria-label="Scatter plot of Gaia DR3 binaries: orbital period versus mass function, with black-hole candidates in red and Gaia BH1 and BH2 marked."></canvas>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CASE FILES -->
+  <section id="cases-section">
+    <div class="eyebrow il"><span class="en">Your turn</span><span class="zh" lang="zh-Hans">轮到你了</span></div>
+    <h2><span class="en">Real black hole, or a glitch?</span><span class="zh" lang="zh-Hans">真黑洞，还是测量假象？</span></h2>
+    <p><span class="en">These are the 20 binaries with the largest mass functions. Pick one, read the evidence, and make your call. Then compare it with five warning signs astronomers look for.</span><span class="zh" lang="zh-Hans">这是质量函数最大的 20 个双星。选一个，看看证据，做出你的判断。然后对照天文学家常用的五个警示信号。</span></p>
+
+    <div class="card compare">
+      <h3><span class="en">The biggest clue</span><span class="zh" lang="zh-Hans">最大的线索</span></h3>
+      <div class="barrow"><span class="il"><span class="en">All 169,208 binaries</span><span class="zh" lang="zh-Hans">全部 169,208 个双星</span></span><div class="bar"><i id="bar-all"></i></div><span class="num" id="pct-all"></span></div>
+      <div class="barrow"><span class="il"><span class="en">Top 20 candidates</span><span class="zh" lang="zh-Hans">前 20 名候选者</span></span><div class="bar"><i id="bar-top"></i></div><span class="num" id="pct-top"></span></div>
+      <p class="small muted"><span class="en">Share that use Gaia's shaky "alternative" orbit fit, which Gaia keeps for weak, noisy signals. Shaky fits are rare overall but crowd the top of the list.</span><span class="zh" lang="zh-Hans">使用 Gaia 不可靠的"替代"轨道拟合的比例。这种拟合专门用于信号弱、噪声大的数据。它在整体中很少见，却挤满了候选名单的前列。</span></p>
+    </div>
+
+    <div class="cases" id="cases" role="group" aria-label="Candidates"></div>
+    <div style="display:flex; justify-content:flex-end"><button type="button" class="btn ghost il" id="reveal-all"><span class="en">Reveal all answers</span><span class="zh" lang="zh-Hans">显示全部答案</span></button></div>
+
+    <div class="card casefile">
+      <div style="display:grid; gap:14px; align-content:start; min-width:0">
+        <h3 id="case-title"></h3>
+        <dl class="facts" id="facts"></dl>
+        <div class="guess" id="guess">
+          <button type="button" class="btn il" data-guess="real"><span class="en">Real black hole</span><span class="zh" lang="zh-Hans">真黑洞</span></button>
+          <button type="button" class="btn il" data-guess="glitch"><span class="en">Glitch</span><span class="zh" lang="zh-Hans">测量假象</span></button>
+          <button type="button" class="btn ghost il" data-guess="show"><span class="en">Just show me</span><span class="zh" lang="zh-Hans">直接看答案</span></button>
+        </div>
+      </div>
+      <div style="display:grid; gap:14px; align-content:start; min-width:0" aria-live="polite">
+        <div id="answer"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GLOSSARY -->
+  <section>
+    <div class="eyebrow il"><span class="en">Word list</span><span class="zh" lang="zh-Hans">词汇表</span></div>
+    <h2><span class="en">Words you'll meet</span><span class="zh" lang="zh-Hans">你会遇到的词</span></h2>
+    <div class="tablewrap"><table class="gloss" id="gloss"></table></div>
+  </section>
+
+  <footer>
+    <div><span class="en">Data: ESA Gaia mission, Gaia Data Release 3 (Gaia Collaboration 2023, A&amp;A 674, A1), table gaiadr3.nss_two_body_orbit, from the Gaia Archive:</span><span class="zh" lang="zh-Hans">数据：欧洲空间局 Gaia 任务，第三次数据发布（Gaia Collaboration 2023, A&amp;A 674, A1），数据表 gaiadr3.nss_two_body_orbit，来自 Gaia 档案库：</span> <a href="https://gea.esac.esa.int/archive/" target="_blank" rel="noopener">gea.esac.esa.int/archive</a></div>
+    <div><span class="en">Confirmed black holes and simulator presets: Gaia BH1 (El-Badry et al. 2023, MNRAS 518, 1057), Gaia BH2 (El-Badry et al. 2023, MNRAS 521, 4323), Gaia BH3 (Gaia Collaboration, Panuzzo et al. 2024, A&amp;A 686, L2). Gaia DR4, with about twice as much data, is due on 2 December 2026.</span><span class="zh" lang="zh-Hans">已确认的黑洞及模拟器预设：Gaia BH1（El-Badry 等 2023, MNRAS 518, 1057）、Gaia BH2（El-Badry 等 2023, MNRAS 521, 4323）、Gaia BH3（Gaia Collaboration, Panuzzo 等 2024, A&amp;A 686, L2）。数据量约为两倍的 Gaia DR4 预计于 2026 年 12 月 2 日发布。</span></div>
+    <div><span class="en">Made for CS85, project 22. Mass functions computed from Gaia's orbit fits with Kepler's third law.</span><span class="zh" lang="zh-Hans">为 CS85 第 22 号项目制作。质量函数由 Gaia 的轨道拟合结果按开普勒第三定律计算。</span></div>
+  </footer>
+</div>
+
+<script>
+const DATA = {"n_total":169208,"alt_share_all":0.0036227601531842466,"bg":[[139.0,0.013],[394.5,0.0234],[678.26,0.0292],[492.88,0.0698],[584.59,0.0601],[710.48,0.0784],[405.61,0.041],[425.03,0.0495],[1602.78,0.0446],[753.26,0.0188],[985.54,0.0351],[551.94,0.128],[774.56,0.0288],[768.22,0.0761],[885.27,0.0149],[1087.83,0.0929],[533.19,0.0455],[527.63,0.0449],[304.8,0.0134],[726.11,0.147],[671.19,0.0506],[175.04,0.0193],[271.47,0.000843],[314.72,0.0329],[716.22,0.0488],[1497.32,0.212],[238.71,0.0803],[1252.26,0.0542],[811.53,0.0218],[1021.69,0.139],[762.13,0.0607],[625.36,0.0442],[539.64,0.0134],[324.54,0.0136],[1056.19,0.386],[428.4,0.0268],[299.12,0.0782],[816.41,0.233],[140.65,0.0182],[1125.35,0.0489],[618.22,0.17],[911.45,0.077],[1209.18,0.0328],[749.78,0.104],[313.92,0.0053],[905.46,0.573],[532.0,0.0639],[614.61,0.176],[240.35,0.0596],[464.64,0.0842],[512.64,0.0323],[414.7,0.00759],[3607.55,0.0102],[1897.1,0.0432],[823.71,0.0322],[959.93,0.214],[615.93,0.0328],[696.27,0.0664],[256.21,0.0198],[752.09,0.0713],[1008.46,0.106],[502.56,0.0023],[761.89,0.0685],[806.3,0.0411],[544.02,0.0301],[898.49,0.0672],[642.21,0.0585],[114.85,0.0126],[578.83,0.0829],[149.6,0.00311],[909.2,0.0446],[490.33,0.041],[311.83,0.0902],[1163.99,0.0958],[455.03,0.0217],[659.63,0.274],[542.64,0.114],[459.63,0.0117],[668.02,0.0561],[525.6,0.00988],[120.34,0.0447],[477.23,0.0563],[610.97,0.0389],[920.31,0.05],[688.37,0.0666],[541.92,0.0158],[1555.31,0.0287],[384.16,0.0236],[244.59,0.0365],[636.93,0.0126],[830.17,0.0288],[962.24,0.343],[307.28,0.00795],[1226.34,0.0632],[655.39,0.0573],[582.09,0.0407],[247.72,0.0449],[589.13,0.059],[453.54,0.0131],[709.94,0.0251],[824.78,0.0729],[347.73,0.0607],[635.47,0.0246],[837.31,0.0423],[547.65,0.0925],[851.67,0.263],[215.99,0.0219],[1079.73,0.0311],[187.52,0.0511],[829.17,0.0812],[1173.24,0.0664],[624.06,0.0287],[1021.28,0.0569],[223.08,0.0285],[641.17,0.0452],[905.31,0.0559],[266.43,0.111],[504.13,0.00363],[335.26,0.0265],[962.55,0.0189],[733.61,0.0447],[449.98,0.0562],[208.32,0.0566],[219.46,0.0448],[470.24,0.00877],[898.68,0.0797],[311.51,0.0703],[1135.87,0.0599],[584.95,0.0667],[883.08,0.219],[767.41,0.0673],[104.54,0.00484],[754.15,0.0069],[300.73,0.0754],[168.65,0.0159],[218.68,0.0473],[738.99,0.119],[768.06,0.0159],[152.36,0.00119],[622.72,0.0514],[1465.62,0.116],[300.52,0.00433],[892.48,0.0723],[542.79,0.0289],[730.55,0.0397],[812.14,0.0223],[773.09,0.0832],[158.93,0.0334],[759.73,0.0735],[881.94,0.157],[545.98,0.00779],[538.46,0.0339],[1069.78,0.078],[219.73,0.0601],[633.29,0.0604],[246.75,0.0209],[224.27,0.0476],[958.08,0.072],[302.83,0.0432],[659.97,0.0449],[1436.41,0.0634],[236.04,0.0491],[602.78,0.00959],[525.01,0.0601],[520.34,0.0678],[244.93,0.0136],[893.7,0.0622],[870.9,0.0522],[702.68,0.0266],[567.38,0.0239],[741.15,0.0777],[906.88,0.0291],[238.86,0.034],[312.04,0.0167],[420.26,0.041],[599.61,0.0356],[275.25,0.0111],[522.49,0.0724],[649.11,0.0129],[768.7,0.167],[592.04,0.0528],[1404.92,0.0355],[1304.54,0.00736],[793.27,0.0209],[849.68,0.0153],[931.9,0.0291],[696.23,0.00428],[480.07,0.00876],[118.86,0.00758],[503.38,0.0728],[717.21,0.324],[727.01,0.107],[764.66,0.0498],[284.72,0.0121],[1078.4,0.15],[872.04,0.0511],[1012.95,0.286],[531.83,0.0227],[430.09,0.0686],[144.9,0.0699],[125.95,0.0205],[375.41,0.00455],[529.01,0.0247],[1037.07,0.136],[979.62,0.114],[487.06,0.0447],[865.47,0.257],[873.28,0.0438],[511.51,0.0265],[936.15,0.169],[911.48,0.117],[493.04,0.000785],[210.19,0.0242],[540.73,0.0322],[582.7,0.035],[820.24,0.245],[252.73,0.00565],[829.45,0.0259],[831.83,0.0262],[321.22,0.0878],[528.33,0.0467],[190.53,0.0646],[316.64,0.00754],[284.89,0.0517],[611.17,0.0269],[646.44,0.00125],[215.1,0.00809],[709.81,0.0912],[883.42,0.103],[671.3,0.0248],[462.48,0.0279],[784.09,0.00722],[757.85,0.0701],[429.18,0.00872],[833.61,0.0709],[659.03,0.038],[225.61,0.0976],[813.76,0.0554],[584.77,0.0536],[543.69,0.0476],[509.34,0.0545],[254.83,0.0691],[792.31,0.0422],[609.81,0.024],[124.53,0.0895],[415.39,0.0262],[797.52,0.0944],[307.13,0.0558],[153.96,0.0713],[530.49,0.0162],[150.52,0.0172],[744.23,0.141],[530.95,0.076],[565.87,0.0345],[930.64,0.0427],[332.02,0.0536],[280.43,0.0501],[542.51,0.0229],[765.67,0.126],[275.12,0.184],[891.08,0.0375],[632.05,0.00657],[489.06,0.00678],[958.6,0.08],[880.96,0.0717],[270.32,0.0564],[896.18,0.054],[1124.22,0.0694],[712.34,0.0654],[940.74,0.117],[518.29,0.00332],[380.28,0.0286],[185.29,0.02],[1290.78,0.109],[646.18,0.0164],[539.33,0.0682],[394.62,0.131],[1087.2,0.238],[476.54,0.00518],[556.27,0.00992],[845.29,0.0379],[430.44,0.11],[389.73,0.0604],[978.42,0.196],[445.17,0.0655],[948.4,0.045],[512.65,0.0787],[979.46,0.064],[763.26,0.0862],[671.81,0.0755],[740.17,0.0935],[343.05,0.0311],[526.56,0.0764],[570.69,0.0537],[255.42,0.0855],[1243.83,0.0461],[533.9,0.0219],[524.53,0.0717],[479.31,0.0521],[542.11,0.0106],[501.51,0.0106],[1059.25,0.04],[674.25,0.101],[737.1,0.0129],[891.38,0.102],[828.08,0.0532],[769.41,0.249],[669.96,0.032],[872.02,0.0372],[282.54,0.0346],[558.25,0.0349],[599.7,0.00398],[623.02,0.00592],[614.8,0.0352],[989.73,0.044],[473.7,0.00304],[601.01,0.0634],[651.33,0.0169],[511.94,0.0314],[231.76,0.0414],[584.07,0.0447],[906.27,0.0724],[400.34,0.0374],[259.36,0.0349],[264.97,0.0386],[836.78,0.432],[988.5,0.0861],[652.02,0.0396],[330.93,0.0143],[482.02,0.0505],[991.47,0.0776],[493.91,0.0935],[613.86,0.0268],[500.89,0.0324],[784.86,0.0583],[1076.45,0.208],[560.59,0.0677],[211.79,0.0505],[515.9,0.0442],[797.45,0.0343],[42.0,0.0119],[546.3,0.0369],[832.19,0.263],[791.42,0.00479],[538.64,0.0177],[704.09,0.117],[838.88,0.045],[1459.68,0.066],[867.31,0.0815],[496.5,0.0137],[934.79,0.236],[510.77,0.0393],[642.45,0.0751],[740.2,0.232],[464.1,0.0131],[465.52,0.0482],[928.15,0.0945],[104.59,0.0166],[589.77,0.0758],[459.63,0.0142],[226.86,0.0311],[288.74,0.00438],[496.48,0.047],[983.1,0.0499],[779.35,0.349],[393.45,0.00342],[949.8,0.111],[548.82,0.133],[1090.23,0.566],[685.47,0.0421],[564.08,0.0797],[609.89,0.0395],[951.62,0.112],[248.41,0.0246],[200.37,0.0243],[562.64,0.00718],[531.61,0.0258],[1345.08,0.458],[467.42,0.02],[637.44,0.0275],[522.96,0.0316],[688.1,0.0454],[707.91,0.133],[522.53,0.104],[749.48,0.0215],[1075.74,0.0779],[757.82,0.539],[620.4,0.068],[1139.32,0.0466],[299.53,0.0485],[912.13,0.0606],[658.12,0.039],[317.61,0.0135],[1089.53,0.0545],[169.19,0.0539],[521.42,0.0228],[1071.75,0.0611],[576.2,0.0119],[927.54,0.0674],[278.82,0.0783],[178.86,0.0194],[1049.54,0.0633],[530.24,0.203],[660.52,0.124],[285.23,0.0772],[177.08,0.128],[507.15,0.000772],[466.91,0.009],[617.41,0.0242],[517.95,0.02],[198.9,0.0121],[766.8,0.0715],[881.08,0.0609],[742.68,0.08],[464.16,0.0601],[1126.64,0.00799],[505.74,0.144],[739.44,0.0301],[609.58,0.0447],[660.44,0.0145],[878.08,0.0367],[486.51,0.091],[240.12,0.0482],[843.39,0.0208],[905.41,0.1],[703.49,0.0456],[950.56,0.0804],[1219.02,0.0496],[812.74,0.0683],[948.93,0.024],[548.56,0.0545],[226.9,0.126],[265.99,0.064],[1023.21,0.0218],[313.18,0.0341],[212.47,0.0753],[922.7,0.0542],[563.16,0.0357],[719.94,0.0578],[577.91,0.0212],[724.2,0.0012],[433.09,0.115],[586.92,0.0439],[842.63,0.0279],[422.98,0.0538],[416.51,0.00697],[295.54,0.00465],[735.66,0.0627],[614.07,0.0238],[948.29,0.056],[484.83,0.00547],[564.41,0.0805],[757.57,0.0177],[479.69,0.00154],[893.08,0.25],[900.18,0.0663],[631.75,0.0342],[531.01,0.0125],[438.78,0.018],[175.1,0.0479],[1000.33,0.283],[591.68,0.0527],[582.06,0.121],[626.25,0.0436],[279.33,0.0229],[666.05,0.11],[271.18,0.0681],[683.31,0.193],[220.04,0.00956],[623.67,0.0382],[2382.0,0.0373],[562.55,0.0515],[435.59,0.0189],[557.81,0.0688],[266.18,0.0447],[597.92,0.129],[925.45,0.174],[1010.95,0.0107],[662.53,0.00121],[763.42,0.0231],[297.84,0.0217],[1280.93,0.0513],[657.41,0.0384],[458.34,0.0413],[1028.68,0.0226],[286.21,0.0358],[400.86,0.132],[642.17,0.0947],[489.63,0.0594],[506.89,0.0712],[615.34,0.0417],[917.86,0.0331],[491.15,0.0141],[147.16,0.00783],[1020.34,0.0433],[841.01,0.0622],[737.78,0.0596],[735.6,0.0133],[171.67,0.0174],[908.17,0.0453],[455.26,0.0103],[1166.17,0.0624],[693.9,0.024],[246.71,0.00221],[628.84,0.0856],[254.51,0.104],[568.46,0.0599],[781.85,0.0824],[322.1,0.0198],[562.88,0.0345],[515.14,0.00664],[290.94,0.00587],[415.08,0.0122],[823.39,0.0791],[221.85,0.0412],[637.99,0.0361],[893.15,0.204],[544.3,0.0293],[234.82,0.0204],[166.86,0.0132],[415.22,0.0414],[702.33,0.0623],[448.2,0.0357],[1075.33,0.0534],[879.56,0.0543],[745.79,0.0789],[179.09,0.0263],[564.61,0.0137],[433.05,0.0621],[1038.2,0.202],[1542.28,0.132],[725.42,0.0422],[977.34,0.11],[489.17,0.00193],[158.61,0.0101],[204.01,0.00815],[509.6,0.0128],[225.96,0.0935],[644.4,0.0183],[501.85,0.0751],[1030.83,0.13],[303.14,0.0603],[204.48,0.00622],[647.29,0.000157],[451.37,0.0189],[211.94,0.0265],[814.48,0.255],[227.1,0.0188],[983.16,0.051],[558.09,0.0574],[551.9,0.00833],[1161.59,0.0952],[552.74,0.065],[203.41,0.0152],[1017.24,0.0148],[528.56,0.163],[1006.2,0.0884],[797.24,0.0692],[896.27,0.0332],[865.65,0.0484],[1030.83,0.0276],[948.88,0.0753],[521.13,0.24],[280.99,0.00647],[473.13,0.107],[1103.4,0.0666],[267.88,0.0652],[182.06,0.0507],[509.87,0.0358],[346.4,0.0197],[1054.0,0.0659],[637.48,0.0278],[943.64,0.00176],[589.4,0.0473],[952.78,0.0973],[443.54,0.0254],[764.04,0.12],[176.8,0.0392],[471.58,0.00574],[1130.47,0.206],[951.56,0.0229],[627.59,0.0258],[269.0,0.0084],[651.35,0.0267],[682.39,0.27],[322.41,0.0324],[2735.17,0.688],[944.81,0.0121],[570.79,0.0167],[730.84,0.0549],[533.99,0.0785],[1882.08,0.101],[947.45,0.0538],[298.53,0.0336],[1039.95,0.0751],[320.99,0.0152],[618.85,0.0444],[931.32,0.0561],[319.31,0.0638],[258.16,0.185],[489.83,0.137],[557.92,0.0131],[818.07,0.0535],[329.78,0.062],[642.1,0.0351],[1763.46,0.0494],[138.11,0.042],[699.78,0.0482],[1212.29,0.0343],[620.72,0.0297],[881.0,0.00838],[917.18,0.0144],[169.63,0.0409],[906.23,0.0454],[610.18,0.0531],[198.5,0.0244],[569.53,0.0253],[622.53,0.0839],[118.75,0.0358],[570.01,0.094],[487.69,0.0614],[691.98,0.0522],[750.11,0.0315],[452.47,0.0126],[479.01,0.00606],[241.08,0.0673],[818.96,0.205],[750.89,0.0797],[1098.69,0.561],[526.5,0.0161],[728.64,0.0607],[216.24,0.0242],[263.49,0.0527],[617.63,0.0824],[311.43,0.0549],[1303.81,0.225],[643.11,0.0133],[91.67,0.0633],[667.67,0.0228],[337.35,0.0215],[189.4,0.192],[477.27,0.128],[201.14,0.0397],[63.54,0.0503],[458.74,0.0692],[667.3,0.0303],[1128.15,0.0364],[458.5,0.0445],[1277.75,0.0304],[690.66,0.116],[608.81,0.0675],[419.51,0.0031],[467.82,0.0222],[706.52,0.0604],[586.33,0.0186],[195.84,0.00377],[1023.65,0.0411],[963.57,0.252],[465.14,0.056],[458.73,0.021],[490.87,0.0198],[811.23,0.0434],[516.37,0.0827],[912.11,0.05],[711.07,0.0209],[281.75,0.042],[924.96,0.0238],[474.26,0.0253],[438.28,0.0547],[762.7,0.0286],[636.47,0.0682],[490.16,0.284],[587.92,0.0554],[1227.77,0.215],[274.71,0.0139],[544.99,0.0157],[711.41,0.152],[796.46,0.0392],[937.68,0.0519],[524.04,0.0913],[170.97,0.0348],[227.54,0.0346],[744.14,0.0732],[115.04,0.0309],[484.21,0.0312],[1232.33,0.0827],[450.27,0.0141],[578.93,0.217],[125.15,0.0634],[226.99,0.124],[1120.95,0.233],[678.74,0.0317],[534.83,0.107],[886.6,0.00281],[813.27,0.0569],[654.41,0.0539],[512.98,0.02],[559.37,0.0467],[512.16,0.0385],[600.66,0.266],[490.11,0.0666],[296.68,0.0537],[504.02,0.0154],[153.66,0.0247],[323.8,0.0683],[242.7,0.0623],[570.61,0.0496],[511.68,0.0281],[305.81,0.0524],[596.61,0.0278],[514.55,0.0159],[442.91,0.0201],[1249.02,0.0534],[1232.93,0.138],[902.52,0.0792],[613.92,0.0104],[220.27,0.0471],[612.47,0.0677],[676.34,0.0461],[877.16,0.0242],[802.74,0.0664],[627.51,0.0655],[931.17,0.154],[976.88,0.05],[991.53,0.0721],[671.89,0.0188],[133.74,0.0207],[557.42,0.0235],[207.04,0.0269],[798.69,0.0746],[436.85,0.0436],[985.33,0.0854],[736.33,0.0538],[651.48,0.069],[595.98,0.0451],[331.14,0.0548],[230.91,0.0377],[577.62,0.0465],[139.37,0.0671],[480.91,0.0797],[640.28,0.0614],[1137.54,0.0943],[530.5,0.101],[1828.33,0.0979],[953.78,0.0404],[655.81,0.0184],[617.81,0.0797],[893.81,0.0178],[903.31,0.192],[1920.32,0.166],[300.25,0.0345],[628.4,0.0213],[220.04,0.0492],[650.17,0.188],[663.08,0.0506],[697.75,0.0788],[904.86,0.0448],[606.91,0.00253],[909.48,0.204],[938.85,0.105],[764.0,0.0501],[541.68,0.0149],[634.73,0.0457],[699.62,0.0733],[726.03,0.00513],[558.01,0.0219],[276.14,0.0659],[741.64,0.02],[648.8,0.0145],[117.59,0.0627],[657.42,0.0103],[171.45,0.066],[852.83,0.0584],[1224.3,0.0914],[380.93,0.00354],[877.79,0.0308],[501.45,0.105],[304.81,0.0864],[552.86,0.00802],[264.64,0.0106],[322.0,0.0113],[916.97,0.287],[528.69,0.0251],[791.52,0.0544],[725.32,0.0451],[586.01,0.0688],[534.96,0.0997],[939.71,0.025],[449.92,0.0192],[746.2,0.00454],[688.77,0.0424],[732.41,0.0334],[218.74,0.0248],[689.0,0.0728],[940.55,0.0451],[214.38,0.00738],[926.34,0.056],[566.74,0.0173],[1196.66,0.0434],[975.61,0.01],[1107.5,0.0669],[517.08,0.0199],[471.98,0.00405],[655.74,0.0447],[930.0,0.0342],[864.79,0.0437],[331.81,0.0803],[143.35,0.0276],[410.92,0.016],[918.79,0.0758],[428.77,0.0374],[633.9,0.0384],[490.52,0.0881],[415.1,0.0127],[869.78,0.118],[230.6,0.0708],[667.58,0.0263],[659.38,0.0404],[716.23,0.0373],[183.75,0.0516],[565.93,0.103],[718.07,0.0394],[742.97,0.0677],[543.64,0.0519],[563.8,0.0043],[285.77,0.0359],[513.52,0.0276],[1057.19,0.0292],[122.59,0.0195],[820.78,0.038],[294.83,0.00916],[443.22,0.0178],[730.09,0.076],[580.46,0.119],[676.99,0.00443],[434.64,0.0105],[642.18,0.0558],[241.37,0.0864],[495.46,0.0051],[199.22,0.0089],[413.89,0.00892],[564.28,0.0699],[522.7,0.0212],[652.97,0.0294],[526.53,0.0601],[643.17,0.0415],[913.81,0.0696],[1549.88,0.0657],[716.03,0.000951],[504.45,0.000661],[817.33,0.0652],[538.46,0.0347],[660.71,0.0703],[998.78,0.191],[588.0,0.154],[302.21,0.0222],[516.69,0.02],[508.88,0.0167],[821.08,0.122],[518.35,0.0252],[213.81,0.0586],[796.81,0.0281],[515.69,0.0631],[696.97,0.0648],[1075.81,0.141],[460.99,0.051],[949.42,0.0456],[697.47,0.00115],[764.56,0.108],[619.31,0.0939],[553.99,0.0759],[615.2,0.00604],[52.63,0.00859],[586.15,0.0866],[612.52,0.0186],[1149.17,0.0638],[497.14,0.0119],[416.61,0.0298],[715.61,0.0323],[1047.33,0.0551],[119.12,0.0159],[447.45,0.0176],[103.23,0.014],[785.02,0.00901],[129.86,0.0349],[469.2,0.0379],[943.72,0.101],[1462.76,0.033],[644.26,0.0443],[541.37,0.072],[726.63,0.0738],[249.87,0.0207],[533.95,0.0704],[486.85,0.0659],[688.5,0.0825],[594.46,0.035],[1937.96,0.0266],[543.99,0.0045],[834.79,0.0368],[571.05,0.0173],[839.78,0.0579],[274.35,0.00643],[942.77,0.0448],[713.12,0.027],[836.15,0.0685],[309.72,0.0649],[724.92,0.0453],[479.01,0.0621],[464.05,0.0426],[1299.95,0.202],[504.03,0.0817],[672.83,0.0531],[274.68,0.0317],[514.08,0.0103],[944.13,0.0284],[736.9,0.0328],[286.85,0.0293],[595.41,0.0509],[464.96,0.0764],[561.32,0.0617],[941.65,0.0807],[639.2,0.0521],[550.77,0.0326],[598.29,0.0191],[171.71,0.00838],[723.16,0.0531],[145.68,0.252],[942.94,0.0867],[576.34,0.181],[230.7,0.0274],[709.5,0.0604],[899.45,0.00292],[462.27,0.11],[406.9,0.0272],[641.56,0.048],[983.77,0.217],[173.68,0.0881],[887.82,0.107],[318.22,0.00604],[80.25,0.0114],[275.06,0.0471],[588.72,0.00958],[749.54,0.00963],[462.64,0.00293],[190.09,0.004],[461.36,0.012],[314.65,0.0136],[424.79,0.096],[695.71,0.0504],[667.19,0.0321],[66.5,0.0519],[804.98,0.164],[292.32,0.0163],[192.28,0.0132],[719.06,0.0121],[514.33,0.281],[531.41,0.0421],[217.9,0.116],[534.01,0.0983],[656.1,0.0271],[257.24,0.00753],[694.1,0.0753],[642.37,0.0153],[339.31,0.0118],[68.29,0.00297],[664.51,0.072],[528.37,0.0745],[530.66,0.0603],[484.98,0.0211],[809.6,0.067],[575.0,0.0499],[556.91,0.042],[612.55,0.0987],[547.31,0.0125],[560.8,0.00342],[318.96,0.0124],[286.26,0.0669],[659.65,0.154],[654.14,0.021],[738.36,0.0284],[713.39,0.0705],[595.52,0.083],[1002.7,0.105],[1164.59,0.0181],[690.6,0.0928],[506.38,0.00254],[736.27,0.0345],[738.57,0.0337],[759.99,0.176],[714.51,0.0546],[1080.33,0.067],[920.42,0.0154],[233.83,0.0566],[960.03,0.052],[734.39,0.0648],[504.82,0.0188],[915.83,0.033],[462.21,0.0389],[331.98,0.054],[183.13,0.00394],[317.56,0.0235],[539.05,0.0136],[824.97,0.0796],[1029.48,0.0438],[643.81,0.102],[1002.95,0.0468],[576.44,0.0486],[581.22,0.0314],[528.76,0.0456],[521.81,0.0491],[237.92,0.00502],[668.57,0.031],[220.75,0.00853],[174.69,0.0299],[296.71,0.0432],[856.08,0.147],[276.18,0.00973],[161.14,0.0474],[501.96,0.0369],[667.55,0.147],[952.57,0.0467],[577.79,0.0417],[564.52,0.104],[641.05,0.0315],[844.71,0.0643],[881.31,0.0393],[601.63,0.00825],[1664.66,0.00236],[83.86,0.0128],[305.58,0.0337],[422.34,0.0398],[885.51,0.026],[1176.67,0.0375],[690.32,0.00548],[606.61,0.022],[814.6,0.14],[768.67,0.0628],[647.75,0.0219],[256.81,0.0225],[859.97,0.0549],[414.91,0.0106],[740.98,0.00735],[234.67,0.0408],[783.65,0.128],[299.01,0.0326],[962.79,0.103],[416.76,0.103],[993.78,0.0751],[533.29,0.0157],[586.58,0.0388],[734.19,0.0449],[1041.03,0.0907],[804.87,0.0918],[744.7,0.0549],[685.39,0.00101],[1064.06,0.166],[535.71,0.0823],[655.15,0.0275],[447.0,0.0137],[689.68,0.0359],[609.7,0.128],[460.71,0.0733],[945.55,0.0724],[784.08,0.0791],[431.14,0.018],[399.34,0.0905],[723.59,0.189],[602.97,0.204],[671.23,0.0257],[304.08,0.0547],[276.52,0.0318],[694.62,0.0299],[751.65,0.0698],[136.09,0.0211],[169.74,0.00982],[582.08,0.0166],[713.78,0.0349],[563.68,0.0269],[619.61,0.0321],[819.07,0.0505],[562.04,0.0136],[639.38,0.061],[429.47,0.0322],[841.76,0.109],[1025.25,0.0215],[943.67,0.128],[191.13,0.0463],[586.02,0.0809],[201.64,0.028],[508.14,0.211],[546.79,0.0227],[579.45,0.0262],[499.61,0.00727],[744.44,0.201],[540.17,0.141],[539.35,0.0714],[992.67,0.0898],[996.92,0.11],[553.8,0.0434],[677.0,0.0397],[569.21,0.0127],[981.87,0.0327],[134.14,0.0186],[718.7,0.15],[675.77,0.151],[597.94,0.0388],[334.13,0.00368],[2078.09,0.061],[630.02,0.0243],[549.41,0.0329],[929.43,0.101],[1944.02,0.00333],[631.19,0.0768],[442.45,0.00784],[595.5,0.0129],[572.46,0.0471],[719.03,0.0371],[560.71,0.032],[696.79,0.14],[163.71,0.0137],[726.03,0.123],[157.62,0.167],[441.06,0.0336],[785.14,0.0211],[560.3,0.0344],[559.43,0.0727],[415.37,0.0253],[259.18,0.0605],[933.23,0.0926],[989.43,0.0763],[299.76,0.0876],[550.65,0.0278],[945.05,0.0392],[617.71,0.0319],[695.56,0.0316],[651.63,0.06],[513.97,0.00826],[551.34,0.0469],[571.87,0.000425],[555.29,0.00466],[786.85,0.202],[464.74,0.0527],[796.58,0.00207],[689.54,0.0333],[495.55,0.0335],[276.72,0.0147],[945.09,0.051],[1063.77,0.146],[936.44,0.0764],[803.47,0.119],[756.58,0.163],[764.97,0.0313],[276.53,0.0407],[648.42,0.0191],[200.27,0.0194],[778.76,0.0472],[1111.9,0.0381],[385.11,0.0498],[936.45,0.0764],[572.71,0.0557],[243.14,0.0413],[582.96,0.0432],[170.74,0.0679],[604.05,0.00445],[586.99,0.0625],[180.82,0.0618],[531.18,0.0485],[876.92,0.182],[682.13,0.0185],[177.41,0.0266],[907.0,0.112],[487.94,0.00368],[341.42,0.0578],[1213.61,0.115],[342.83,0.00821],[578.55,0.0365],[955.81,0.0629],[809.15,0.0631],[488.03,0.0578],[1282.54,0.073],[873.87,0.122],[466.42,0.00926],[850.29,0.0369],[256.36,0.0431],[320.17,0.00592],[477.62,0.0242],[789.23,0.0736],[540.29,0.0383],[920.98,0.166],[634.99,0.0655],[228.54,0.0255],[555.26,0.0255],[945.74,0.0785],[482.51,0.0664],[608.64,0.0172],[915.52,0.0473],[426.71,0.00894],[253.07,0.0562],[263.0,0.00785],[214.33,0.034],[752.43,0.00715],[449.43,0.0962],[648.05,0.00204],[688.01,0.0784],[470.55,0.0187],[575.86,0.037],[423.55,0.0147],[247.29,0.00715],[525.74,0.0213],[428.98,0.0236],[224.87,0.065],[774.84,0.0455],[580.69,0.0537],[308.08,0.0151],[1101.35,0.0513],[887.64,0.063],[603.5,0.0315],[180.42,0.0106],[750.56,0.171],[604.3,0.0428],[599.91,0.0231],[708.89,0.0363],[542.15,0.214],[196.61,0.0713],[452.09,0.0503],[296.53,0.0421],[515.21,0.0705],[913.06,0.123],[539.73,0.116],[697.29,0.165],[256.52,0.0248],[560.6,0.12],[630.7,0.0578],[626.21,0.0741],[551.55,0.0154],[762.37,0.0243],[555.76,0.0585],[486.29,0.0501],[654.12,0.0463],[527.07,0.0242],[300.81,0.0189],[538.15,0.0316],[597.23,0.0562],[489.31,0.0618],[395.23,0.103],[921.53,0.0871],[173.93,0.0287],[804.43,0.0486],[468.43,0.0301],[1119.16,0.0201],[243.26,0.00563],[880.68,0.13],[1005.42,0.0272],[121.31,0.0582],[595.6,0.0502],[1091.3,0.168],[147.84,0.0485],[680.2,0.0295],[760.92,0.0436],[950.37,0.215],[522.22,0.025],[939.99,0.248],[1027.88,0.171],[1835.4,0.0964],[449.83,0.0191],[533.65,0.0248],[579.55,0.0756],[856.47,0.0409],[469.59,0.0478],[778.06,0.106],[499.57,0.00727],[523.69,0.0442],[506.27,0.00453],[597.66,0.069],[426.81,0.0542],[237.98,0.0108],[445.02,0.0264],[721.94,0.0516],[346.3,0.0546],[868.98,0.0546],[546.56,0.065],[700.43,0.129],[451.63,0.0282],[785.86,0.0853],[965.49,0.069],[769.73,0.0721],[852.28,0.112],[473.76,0.0743],[829.64,0.0496],[475.32,0.0139],[1143.2,0.134],[996.84,0.0342],[934.17,0.0184],[757.7,0.168],[640.02,0.0492],[327.31,0.0333],[549.96,0.0757],[546.51,0.00759],[931.16,0.027],[493.94,0.0722],[284.06,0.0548],[1249.67,0.0594],[496.33,0.00285],[842.14,0.0663],[253.45,0.0517],[599.04,0.0232],[329.56,0.0683],[895.24,0.0317],[929.43,0.0658],[277.63,0.0706],[552.03,0.0539],[964.85,0.0606],[632.17,0.0701],[902.26,0.0436],[701.33,0.0845],[302.25,0.0854],[996.14,0.068],[1059.2,0.0248],[496.12,0.00305],[259.95,0.071],[460.71,0.053],[890.93,0.0191],[1001.63,0.126],[579.7,0.0173],[599.59,0.264],[447.08,0.166],[1251.71,0.0643],[1050.76,0.0398],[138.44,0.00295],[733.83,0.0259],[201.08,0.00539],[433.92,0.0364],[834.7,0.0497],[434.41,0.00101],[277.09,0.0208],[176.88,0.0567],[985.42,0.0395],[203.12,0.0494],[175.38,0.0211],[949.8,0.0666],[809.89,0.049],[515.2,0.0301],[734.25,0.0406],[409.58,0.00752],[230.22,0.00176],[784.76,0.067],[447.78,0.03],[659.53,0.0679],[288.69,0.000365],[169.49,0.0362],[481.01,0.055],[497.57,0.024],[565.06,0.117],[802.37,0.0661],[470.46,0.0453],[345.01,0.0233],[407.4,0.0334],[663.91,0.00748],[421.27,0.00434],[471.32,0.000678],[858.92,0.0509],[1437.87,0.0595],[758.29,0.00273],[624.66,0.0718],[552.96,0.0758],[295.46,0.0287],[584.2,0.0781],[1119.35,0.0515],[1246.72,0.163],[1239.54,0.0635],[499.87,0.0377],[1096.87,0.042],[298.0,0.0155],[1492.86,0.17],[698.63,0.0315],[701.22,0.352],[797.68,0.0424],[532.7,0.00619],[751.48,0.119],[984.83,0.0417],[470.54,0.00372],[337.15,0.0182],[563.82,0.0577],[975.5,0.353],[601.59,0.0159],[1148.51,0.0874],[241.11,0.00221],[455.62,0.026],[567.66,0.075],[508.54,0.0427],[626.26,0.225],[223.4,0.0781],[589.65,0.00167],[730.93,0.0818],[476.5,0.144],[844.71,0.0679],[442.98,0.0364],[457.7,0.0476],[514.14,0.0778],[785.43,0.0642],[505.42,0.0645],[554.31,0.0356],[648.36,0.0402],[500.82,0.0198],[549.37,0.347],[616.85,0.1],[1586.82,0.0352],[1166.55,0.0926],[703.29,0.085],[790.93,0.0432],[651.28,0.00863],[488.55,0.0516],[505.78,0.0347],[928.8,0.0545],[253.66,0.0238],[1008.04,0.0743],[926.55,0.0776],[885.88,0.104],[518.79,0.0228],[726.62,0.0254],[267.58,0.053],[1119.77,0.109],[895.77,0.473],[481.1,0.058],[954.85,0.107],[857.35,0.0982],[293.49,0.0164],[548.51,0.00832],[475.62,0.0366],[1243.64,0.257],[1776.62,0.172],[1222.75,0.0662],[382.03,0.0123],[161.97,0.0246],[911.06,0.0653],[527.11,0.0989],[656.3,0.00779],[1022.84,0.419],[572.64,0.064],[605.32,0.00264],[496.64,0.00944],[469.55,0.212],[398.97,0.0627],[842.06,0.045],[303.87,0.00553],[883.56,0.141],[333.16,0.0186],[966.06,0.0299],[626.42,0.0691],[598.51,0.126],[1009.34,0.18],[428.03,0.00696],[205.16,0.0272],[498.63,0.0446],[716.7,0.0397],[1146.27,0.052],[245.92,0.109],[713.44,0.0753],[712.33,0.14],[120.89,0.0381],[285.4,0.0461],[585.96,0.0468],[553.23,0.0662],[593.68,0.0318],[721.38,0.0371],[247.57,0.0261],[623.71,0.0304],[534.02,0.058],[721.97,0.0443],[320.74,0.0499],[910.88,0.0432],[198.21,0.00187],[511.11,0.0205],[1620.46,0.168],[499.49,0.0311],[621.53,0.0402],[697.48,0.0118],[772.85,0.0887],[637.07,0.416],[546.84,0.0345],[589.28,0.0644],[734.64,0.0256],[523.64,0.0141],[834.6,0.0528],[268.92,0.112],[1065.28,0.287],[819.48,0.0419],[505.81,0.0341],[867.01,0.0642],[948.44,0.0554],[272.01,0.0493],[526.72,0.128],[648.91,0.0489],[306.23,0.0129],[685.2,0.0728],[568.32,0.0177],[798.64,0.165],[351.77,0.00209],[865.56,0.0682],[980.26,0.0748],[1026.47,0.0426],[69.43,0.0855],[614.63,0.069],[506.22,0.0136],[271.59,0.0281],[275.72,0.00877],[935.84,0.111],[777.51,0.0354],[919.65,0.0761],[1112.9,0.0556],[766.1,0.13],[458.96,0.0286],[1728.08,0.00621],[89.63,0.0331],[525.09,0.044],[192.93,0.00212],[602.29,0.114],[865.85,0.0458],[796.25,0.123],[267.06,0.042],[254.51,0.0212],[649.94,0.0564],[313.99,0.00372],[801.86,0.0168],[941.81,0.066],[958.52,0.0491],[245.79,0.00557],[613.96,0.0411],[610.73,0.0376],[642.23,0.0208],[151.86,0.0669],[976.13,0.168],[614.83,0.0292],[529.34,0.0607],[788.66,0.0636],[1163.31,0.1],[806.77,0.0533],[563.72,0.008],[481.56,0.0192],[565.44,0.00805],[908.56,0.0806],[797.79,0.0444],[484.5,0.0707],[507.72,0.191],[898.71,6.24e-07],[879.43,0.189],[755.38,0.0524],[186.33,0.0914],[226.37,0.0499],[762.37,0.0353],[202.17,0.00233],[477.21,0.00574],[888.49,0.102],[876.31,0.29],[927.31,0.0777],[1128.68,0.155],[667.27,0.108],[588.7,0.0233],[851.14,0.143],[917.78,0.0659],[684.1,0.0961],[911.15,0.0846],[285.37,0.00192],[574.53,0.00831],[631.75,0.0269],[1102.36,0.0257],[457.77,0.0382],[577.99,0.0854],[549.7,0.062],[785.03,0.0649],[516.54,0.0208],[225.36,0.137],[598.68,0.272],[434.74,0.00671],[912.93,0.0144],[927.71,0.0663],[563.65,0.0227],[179.3,0.00959],[413.66,0.0653],[1181.92,0.0408],[292.19,0.0355],[524.91,0.0284],[522.37,0.0852],[151.56,0.149],[648.62,0.0107],[1384.81,0.221],[525.44,0.0184],[262.59,0.283],[291.39,0.0547],[879.65,0.00635],[890.85,0.063],[926.53,0.0324],[595.78,0.0346],[1028.58,0.0415],[3768.64,0.251],[659.19,0.0706],[489.57,0.0236],[503.93,0.0336],[615.52,0.176],[689.25,0.108],[893.32,0.0802],[972.55,0.088],[574.18,0.016],[306.78,0.0034],[433.08,0.0127],[746.49,0.00469],[928.08,0.0463],[871.82,0.0813],[1069.4,0.0616],[315.37,0.0492],[479.85,0.0677],[575.47,0.0368],[957.46,0.0765],[762.61,0.0345],[315.96,0.0384],[922.77,0.0273],[799.87,0.028],[208.38,0.0512],[809.73,0.15],[641.15,0.0504],[589.87,0.208],[886.61,0.178],[573.25,0.231],[1057.51,0.0363],[830.74,0.0461],[901.34,0.0516],[428.41,0.0659],[909.15,0.085],[172.88,0.00386],[281.41,0.0338],[223.0,0.197],[732.87,0.106],[498.76,0.0702],[816.82,0.0294],[317.95,0.00505],[484.71,0.113],[878.33,0.0631],[1053.96,0.0584],[755.92,0.0643],[418.16,0.086],[755.14,0.0569],[607.09,0.039],[545.24,0.0401],[687.52,0.0664],[721.24,0.0261],[302.34,0.0258],[619.24,0.107],[1647.77,0.0351],[475.78,0.0797],[393.03,0.0153],[495.55,0.0208],[315.62,0.0052],[393.25,0.0332],[492.99,0.0459],[544.65,0.00962],[175.94,0.00718],[755.13,0.0584],[189.79,0.0553],[618.07,0.0384],[432.18,0.00494],[907.19,0.0627],[789.4,0.122],[395.26,0.0758],[600.52,0.0467],[1175.39,0.29],[570.56,0.0629],[22.76,0.00937],[661.58,0.034],[2173.16,0.0244],[1014.78,0.126],[822.44,0.0548],[1040.13,0.118],[875.19,0.193],[399.65,0.0165],[103.19,0.0207],[230.81,0.0144],[276.87,0.258],[812.56,0.047],[511.58,0.0994],[523.03,0.216],[165.47,0.121],[534.52,0.00122],[1030.09,0.0594],[639.66,0.0353],[596.13,0.0648],[232.36,0.0654],[797.08,0.0522],[952.93,0.208],[716.66,0.0613],[821.48,0.0988],[425.13,0.00909],[1330.77,0.526],[453.77,0.0639],[546.41,0.0491],[599.47,0.0138],[871.45,0.025],[508.93,0.0294],[1121.01,0.0397],[309.27,0.122],[476.81,0.0338],[826.51,0.0242],[943.74,0.28],[443.9,0.00374],[535.84,0.061],[679.43,0.0438],[575.27,0.0967],[184.96,0.00216],[546.91,0.0279],[583.27,0.0298],[644.72,0.11],[528.47,0.0701],[926.41,0.0664],[267.73,0.000192],[373.65,0.00323],[620.17,0.0391],[155.26,0.0552],[293.92,0.0167],[423.26,0.0435],[816.28,0.17],[220.54,0.0365],[1269.93,0.0921],[220.61,0.0112],[871.03,0.0419],[299.02,0.111],[497.12,0.0217],[776.48,0.119],[302.13,0.0341],[1227.07,0.0816],[231.84,0.0573],[504.48,0.029],[1004.02,0.075],[434.07,0.0111],[463.12,0.0215],[697.51,0.046],[464.2,0.0146],[928.4,0.0108],[620.61,0.0294],[785.58,0.0731],[691.53,0.0318],[793.67,0.0271],[934.96,0.0164],[454.43,0.0578],[1015.26,0.0387],[755.74,0.0337],[730.01,0.0366],[222.91,0.0556],[646.59,0.000815],[800.14,0.0531],[971.87,0.0844],[962.23,0.114],[1054.84,0.0532],[298.19,0.00227],[1099.41,0.0243],[566.36,0.0425],[941.87,0.0284],[661.66,0.0222],[908.88,0.0966],[690.57,0.0818],[559.31,0.0258],[271.22,0.0505],[520.57,0.0698],[662.9,0.0423],[477.84,0.0528],[238.08,0.0459],[795.63,0.046],[558.02,0.0151],[578.73,0.0798],[578.87,0.0375],[564.18,0.00857],[562.79,0.126],[293.91,0.0165],[778.48,0.0121],[300.91,0.0181],[224.04,0.0376],[684.18,0.0468],[717.7,0.0471],[179.48,0.0342],[214.32,0.00205],[1025.97,0.0458],[795.68,0.0357],[302.73,0.0255],[962.87,0.048],[657.94,0.00378],[607.97,0.0403],[1106.1,0.0512],[790.56,0.0562],[114.76,0.033],[327.43,0.0517],[951.12,0.235],[487.66,0.0568],[107.67,0.0058],[1272.48,0.0845],[200.97,0.00312],[529.33,0.0182],[584.4,0.302],[1074.24,0.0024],[1097.14,0.0772],[592.93,0.104],[722.29,0.0148],[580.45,0.0387],[1153.92,0.0148],[927.83,0.0196],[881.39,0.0444],[269.56,0.0853],[257.9,0.061],[451.45,0.0312],[563.07,0.0433],[128.03,0.0457],[429.55,0.0127],[471.22,0.08],[287.0,0.00931],[877.93,0.0353],[455.06,0.0219],[627.7,0.377],[963.26,0.0605],[1385.8,0.0495],[996.89,0.0632],[1072.96,0.208],[509.65,0.0651],[1081.98,0.0192],[664.58,0.0597],[597.17,0.0132],[651.61,0.128],[837.84,0.0665],[661.93,0.0797],[858.62,0.0408],[879.86,0.0557],[210.27,0.0636],[724.92,0.0674],[667.16,0.0691],[552.52,0.159],[468.55,0.0603],[721.38,0.113],[486.01,0.0536],[493.96,0.0025],[1105.53,0.0497],[713.63,0.058],[141.27,0.0571],[920.2,0.0441],[705.59,0.0535],[203.77,0.0219],[407.12,0.00675],[979.28,0.0383],[809.48,0.0526],[148.47,0.0375],[596.27,0.0566],[498.15,0.0118],[658.66,0.0296],[1066.45,0.218],[751.7,0.0272],[506.39,0.137],[613.6,0.0841],[199.7,0.00732],[270.33,0.00152],[656.61,0.0158],[698.62,0.0463],[865.99,0.062],[1235.89,0.172],[256.26,0.046],[131.15,0.0162],[463.31,0.241],[1723.41,0.199],[571.82,0.129],[686.11,0.0669],[280.05,0.0595],[315.37,0.0497],[924.81,0.0916],[837.73,0.123],[264.5,0.201],[697.56,0.0667],[780.33,0.0454],[895.85,0.0522],[913.7,0.0567],[548.29,0.0197],[709.19,0.191],[848.86,0.113],[250.0,0.0511],[700.8,0.00966],[1102.57,0.141],[679.91,0.00605],[322.12,0.063],[770.13,0.034],[269.22,0.0354],[522.9,0.0198],[683.24,0.0065],[641.7,0.0599],[1931.01,0.13],[515.74,0.0306],[642.8,0.0904],[200.92,0.0996],[833.13,0.0402],[177.55,0.0299],[1017.72,0.0474],[727.07,0.0592],[826.66,0.0298],[565.73,0.0223],[416.95,0.051],[417.5,6.73e-06],[650.45,0.0518],[729.58,0.0108],[495.93,0.00783],[547.31,0.606],[468.64,0.0098],[1038.6,0.00583],[524.69,0.0193],[402.52,0.0524],[1209.96,0.0819],[1386.4,0.212],[305.89,0.00934],[450.11,0.0211],[750.06,0.0633],[764.05,0.0309],[676.68,0.0289],[293.61,0.0227],[1006.19,0.0474],[609.16,0.0575],[466.12,0.041],[584.93,0.000872],[494.39,0.0546],[506.99,0.0827],[246.16,0.00957],[609.37,0.00338],[579.86,0.0585],[485.72,0.0439],[136.02,0.0793],[574.36,0.0445],[574.72,0.084],[813.22,0.163],[229.79,0.0497],[242.5,0.0904],[832.36,0.0545],[601.14,0.0205],[168.17,0.0602],[671.63,0.0548],[324.18,0.00378],[1152.06,0.0664],[680.53,0.0773],[699.51,0.015],[461.84,0.0073],[714.62,0.0411],[218.63,0.014],[944.62,0.0522],[739.64,0.161],[624.73,0.025],[545.88,0.0175],[552.77,0.0356],[555.49,0.0155],[716.71,0.0547],[447.09,0.0338],[877.6,0.0365],[635.3,0.0466],[753.89,0.0574],[589.67,0.0331],[1180.42,0.0743],[481.75,0.129],[905.45,0.0749],[846.32,0.0278],[581.9,0.0498],[749.46,0.0424],[988.91,0.162],[574.83,0.0785],[728.0,0.0177],[467.67,0.000759],[1108.24,0.128],[549.63,0.0381],[626.47,0.061],[641.49,0.0804],[562.46,0.121],[683.58,0.075],[176.99,0.0114],[359.59,0.0177],[550.03,0.0105],[465.34,0.0113],[862.29,0.0836],[316.86,0.0807],[574.95,0.0195],[936.16,0.03],[591.66,0.0242],[959.04,0.086],[1020.31,0.304],[218.79,0.00785],[722.33,0.0247],[922.66,0.0659],[554.85,0.0661],[179.78,0.000572],[963.78,0.0363],[569.84,0.0594],[478.32,0.0323],[592.56,0.0737],[558.93,0.281],[117.55,0.0405],[573.8,0.00274],[479.72,0.00125],[387.33,0.00744],[165.71,0.00853],[621.12,0.0316],[606.06,0.0367],[570.53,0.0345],[273.28,0.0301],[561.3,0.0108],[261.52,0.0337],[462.64,0.0142],[565.1,0.0514],[691.88,0.105],[548.14,0.0165],[618.08,0.0208],[575.12,0.0491],[279.8,0.0289],[205.71,0.0141],[418.2,0.0383],[174.03,0.0473],[762.01,0.113],[1386.46,0.132],[297.25,0.0745],[941.24,0.0573],[538.76,0.0602],[738.43,0.0435],[549.25,0.00129],[756.02,0.033],[132.28,0.0412],[1076.24,0.036],[514.22,0.0216],[803.05,0.0712],[239.3,0.0422],[901.96,0.0438],[193.54,0.00702],[271.61,0.00539],[583.54,0.00188],[821.05,0.049],[315.01,0.0174],[238.38,0.0463],[1213.34,0.154],[567.39,0.0257],[870.87,0.0757],[486.25,0.0236],[896.46,0.159],[887.58,0.0806],[161.53,0.0495],[293.78,0.0471],[843.29,0.0636],[206.21,0.0779],[525.88,0.13],[437.47,0.0176],[502.28,0.0638],[645.19,0.0886],[671.62,0.0151],[938.14,0.0878],[683.44,0.0474],[674.38,0.0596],[486.02,0.054],[793.02,0.0492],[176.01,0.0205],[741.3,0.0625],[260.52,0.101],[1043.43,0.00689],[802.13,0.152],[530.78,0.0555],[769.24,0.0613],[923.86,0.196],[846.49,0.0783],[860.98,0.0872],[909.17,0.0224],[531.1,0.0418],[192.62,0.00487],[310.78,0.0559],[548.65,0.000515],[497.98,0.242],[654.14,0.0323],[509.69,0.0374],[682.4,0.0513],[827.86,0.0386],[503.45,0.0769],[418.91,0.0687],[512.74,0.083],[592.45,0.125],[654.22,0.0441],[481.79,0.0411],[312.04,0.00972],[533.15,0.0197],[669.33,0.0413],[556.58,0.0232],[216.32,0.0419],[607.63,0.0297],[1452.55,0.0892],[570.52,0.00322],[837.59,0.0161],[255.24,0.0121],[825.87,0.0111],[719.48,0.0616],[800.76,0.18],[621.96,0.0968],[434.56,0.031],[814.87,0.103],[1061.51,0.142],[1041.38,0.0474],[846.48,0.0797],[68.9,0.0279],[466.65,0.0467],[177.14,0.0163],[1885.16,0.0178],[180.92,0.0657],[532.0,0.0672],[472.23,0.00411],[634.32,0.0239],[514.6,0.0169],[252.44,0.014],[925.98,0.0369],[1691.42,0.0626],[527.08,0.0301],[637.03,0.0554],[562.92,0.0699],[572.7,0.0718],[589.25,0.0658],[754.08,0.288],[303.1,0.0437],[456.29,0.028],[797.11,0.14],[677.5,0.105],[143.3,0.015],[918.76,0.0569],[763.76,0.0109],[1060.43,0.00477],[595.36,0.0108],[402.6,0.0344],[218.96,0.0484],[702.91,0.0522],[525.78,0.0383],[1045.73,0.0263],[469.75,0.0124],[1091.86,0.0133],[176.71,0.0246],[887.17,0.0837],[165.09,0.02],[1021.09,0.0699],[915.6,0.119],[587.16,0.0394],[532.37,0.00129],[335.08,0.00627],[589.42,0.0733],[499.32,0.056],[959.96,0.0887],[313.76,0.0249],[890.76,0.0141],[204.65,0.0422],[532.88,0.0194],[648.31,0.0626],[538.01,0.0813],[2189.17,0.0681],[269.56,0.00763],[701.52,0.0566],[390.03,0.00849],[946.46,0.0543],[554.56,0.0362],[802.76,0.0463],[316.06,0.0263],[574.93,0.0316],[440.62,0.108],[457.39,0.00454],[752.25,0.0871],[623.52,0.0569],[576.08,0.103],[529.89,0.00404],[565.61,0.0159],[263.96,0.00077],[922.6,0.0655],[497.27,0.0641],[800.43,0.0274],[821.33,0.0776],[502.71,0.105],[793.42,0.195],[872.22,0.0986],[297.2,0.0693],[101.09,0.0287],[557.07,0.0668],[219.04,0.0307],[674.96,0.0715],[631.6,0.198],[838.95,0.0266],[550.63,0.0703],[172.89,0.0243],[205.14,0.0206],[548.51,0.0456],[354.81,0.0416],[223.38,0.0291],[695.84,0.165],[852.78,0.044],[459.52,0.0497],[889.26,0.0956],[953.64,0.0287],[626.6,0.134],[960.42,0.0509],[858.03,0.0522],[264.71,0.0242],[194.53,0.046],[1124.18,0.0747],[222.27,0.0487],[543.72,0.0416],[796.38,0.0302],[285.03,0.0625],[639.45,0.0384],[558.52,0.0459],[505.19,0.0285],[684.7,0.0345],[220.03,0.00848],[435.94,0.0158],[461.63,0.0244],[589.19,0.0817],[886.25,0.0406],[760.2,0.0813],[539.19,0.00835],[499.28,0.0186],[998.64,0.0868],[526.06,0.00589],[729.62,0.0458],[974.75,0.053],[2964.18,0.0129],[561.14,0.0421],[653.14,0.028],[642.23,0.0742],[542.91,0.0726],[413.73,0.0624],[253.52,0.0156],[648.67,0.0201],[1495.11,0.0637],[790.18,0.0349],[1217.26,0.0385],[796.35,0.077],[517.42,0.14],[606.99,0.0602],[636.95,0.0856],[221.61,0.14],[790.41,0.0516],[927.55,0.0456],[750.03,0.21],[496.12,0.0265],[700.61,0.0315],[583.69,0.0804],[515.72,0.0875],[1053.99,0.0798],[177.61,0.0234],[1104.48,0.159],[669.04,0.0566],[67.39,0.00703],[508.65,0.0481],[695.04,0.0202],[214.81,0.0597],[842.92,0.199],[652.36,0.0062],[1615.12,0.0677],[438.75,0.00191],[1112.19,0.034],[614.53,0.233],[807.12,0.0613],[603.83,0.054],[140.82,0.0286],[880.66,0.112],[259.54,0.035],[851.8,0.0241],[446.59,0.0815],[175.63,0.0324],[485.16,0.0325],[939.55,0.104],[261.41,0.102],[527.32,0.0366],[551.01,0.042],[978.46,0.0262],[490.16,0.0594],[530.48,0.0604],[262.41,0.0809],[496.09,0.0114],[1211.19,0.0614],[449.48,0.132],[509.09,0.00235],[213.3,0.0203],[524.78,0.0305],[1046.69,0.119],[594.14,0.0449],[645.33,0.044],[1088.61,0.109],[768.51,0.0482],[594.16,0.101],[223.84,0.0159],[473.32,0.0378],[652.53,0.0537],[510.24,0.0228],[519.37,0.125],[644.31,0.0228],[312.17,0.0171],[264.72,0.0767],[1079.29,0.089],[297.52,0.00334],[584.8,0.0281],[774.25,0.052],[753.73,0.0679],[743.34,0.286],[562.35,0.0334],[746.51,0.0666],[501.1,0.00307],[598.6,0.104],[224.3,0.0563],[119.07,0.0106],[276.38,0.0384],[214.15,0.113],[559.19,0.261],[209.78,0.0137],[130.62,0.0516],[579.62,0.0576],[764.74,0.0232],[937.26,0.0612],[397.33,0.00532],[555.0,0.0646],[466.9,0.00497],[984.02,0.0926],[770.16,0.136],[312.02,0.0559],[241.4,0.34],[934.43,0.0651],[993.95,0.0954],[1022.08,0.0465],[337.23,0.094],[720.82,0.099],[110.94,0.0142],[1370.95,0.101],[181.33,0.0295],[895.0,0.0744],[234.16,0.0313],[286.28,0.0477],[156.57,0.153],[704.02,0.0442],[390.11,0.00511],[141.29,0.0624],[415.76,0.0169],[836.31,0.298],[231.06,0.00268],[523.16,0.0374],[989.07,0.0461],[129.55,0.0609],[277.6,0.046],[327.19,0.0626],[820.8,0.0454],[260.52,0.0106],[1002.12,0.062],[234.59,0.0156],[1008.43,0.057],[429.02,0.0118],[755.4,0.038],[837.41,0.0741],[651.31,0.127],[660.23,0.063],[823.7,0.0808],[304.09,0.0541],[517.36,0.0243],[272.63,0.178],[565.3,0.0165],[131.06,0.0335],[561.17,0.0103],[470.01,0.0653],[265.75,0.0438],[730.91,0.0163],[307.55,0.024],[262.0,0.0041],[656.14,0.00163],[887.75,0.266],[1383.35,0.106],[304.19,0.0564],[1127.47,0.385],[818.46,0.0351],[653.04,0.00701],[609.82,0.0436],[422.12,0.0456],[259.02,0.131],[200.34,0.0296],[1162.99,0.0657],[439.36,0.0222],[125.38,0.00954],[703.62,0.292],[798.1,0.0486],[667.85,0.0421],[766.91,0.0416],[779.79,0.0502],[537.53,0.068],[519.84,0.0913],[224.79,0.0584],[591.92,0.0377],[657.19,0.0317],[696.16,0.0312],[522.44,0.194],[972.07,0.0615],[1581.95,0.0817],[235.31,0.0236],[477.57,0.00682],[534.86,0.0451],[275.89,0.0596],[1078.42,0.071],[259.28,0.0155],[503.2,0.0591],[624.5,0.054],[799.87,0.056],[280.45,0.0179],[944.26,0.0417],[1638.52,0.0571],[751.05,0.124],[662.57,0.13],[265.39,0.0641],[693.88,0.165],[612.83,0.0297],[597.42,0.0299],[662.89,0.181],[165.24,0.009],[764.33,0.0502],[138.16,0.0369],[926.94,0.00028],[848.35,0.354],[247.22,0.0803],[634.13,0.0845],[274.86,0.0816],[544.09,0.191],[1160.06,0.0643],[453.17,0.000417],[772.83,0.0364],[517.39,0.0539],[869.06,0.0418],[114.39,0.0219],[271.09,0.0277],[448.34,0.0368],[212.69,0.0051],[320.26,0.0432],[316.61,0.0169],[571.6,0.091],[666.27,0.0647],[903.69,0.0333],[765.7,0.0587],[747.8,0.0497],[716.54,0.0295],[320.06,0.0709],[304.52,0.0401],[810.68,0.0692],[863.71,0.0287],[296.39,0.0117],[672.23,0.0148],[205.64,0.0365],[477.78,0.0712],[470.73,0.0157],[228.53,0.00662],[615.81,0.125],[474.39,0.0693],[580.42,0.0874],[582.41,0.0373],[1241.63,0.0678],[310.45,0.0364],[520.79,0.0124],[201.11,0.0349],[473.88,0.0542],[848.31,0.0568],[905.95,0.0558],[677.6,0.022],[436.62,0.0147],[477.47,0.0442],[489.55,0.0249],[419.21,0.0192],[118.05,0.0485],[486.5,0.109],[866.57,0.057],[1686.97,0.125],[859.66,0.152],[1372.65,0.0551],[782.6,0.135],[766.79,0.0641],[316.25,0.0419],[788.79,0.0155],[674.45,0.149],[688.05,0.0116],[901.0,0.0965],[551.79,0.0374],[543.48,0.0323],[561.49,0.0494],[119.06,0.0538],[731.69,0.0328],[1752.77,0.0363],[1372.64,0.1],[757.48,0.0604],[482.42,0.0628],[1072.37,0.0267],[580.84,0.0317],[986.27,0.316],[1037.52,0.0596],[748.93,0.041],[707.2,0.0695],[1450.38,0.16],[838.32,0.0766],[432.45,0.0027],[453.19,0.0238],[133.98,0.0597],[745.93,0.0337],[749.49,0.0711],[211.41,0.00454],[684.33,0.0658],[672.56,0.00912],[507.04,0.00913],[752.26,0.0575],[740.74,0.0612],[277.33,0.0966],[329.3,0.022],[227.66,0.0346],[712.42,0.0882],[793.83,0.0652],[558.61,0.0628],[1098.01,0.0508],[706.03,0.0627],[643.79,0.0229],[215.21,0.0146],[579.03,0.0888],[777.57,0.122],[777.66,0.0591],[487.64,0.0455],[1239.1,0.0401],[616.0,0.101],[662.82,0.0723],[811.53,0.117],[111.16,0.0513],[543.0,0.00945],[856.67,0.171],[744.62,0.238],[246.02,0.046],[663.87,0.0257],[513.98,0.019],[1142.51,0.0248],[593.26,0.0508],[504.52,0.0293],[533.72,0.139],[648.27,0.121],[169.35,0.00751],[263.98,0.00876],[752.53,0.0906],[820.72,0.0687],[618.27,0.0178],[305.19,0.0321],[497.24,0.0105],[497.17,0.0483],[596.69,0.0237],[533.59,0.00554],[99.08,0.0453],[157.07,0.0114],[266.59,0.0898],[560.02,0.079],[536.28,0.0693],[998.82,0.0792],[716.73,0.0258],[525.71,0.0172],[141.39,0.0344],[562.95,0.0349],[1057.33,0.133],[539.22,0.00196],[260.02,0.0127],[450.26,0.0239],[666.19,0.0285],[664.03,0.0288],[295.89,0.0636],[739.29,0.0481],[197.28,0.0327],[623.9,0.0854],[610.48,0.0208],[494.61,0.0757],[801.34,0.0415],[713.64,0.00262],[344.36,0.00748],[858.26,0.056],[570.15,0.0811],[682.36,0.0286],[907.81,0.0664],[491.55,0.025],[133.71,0.0611],[478.86,0.0183],[419.48,0.0207],[950.11,0.0631],[127.17,0.00263],[1031.6,0.103],[561.69,0.0604],[204.36,0.0511],[516.33,0.0822],[854.98,0.0649],[319.13,0.0273],[42.21,0.00821],[823.98,0.0812],[731.41,0.021],[312.66,0.0349],[477.69,0.0423],[652.76,0.0822],[281.9,0.0385],[542.33,0.109],[659.21,0.0645],[570.77,0.0281],[803.75,0.184],[716.33,0.0428],[5389.53,0.0044],[682.69,0.0853],[918.48,0.0644],[538.39,0.0611],[1159.38,0.0485],[445.83,0.0759],[273.77,0.0539],[545.58,0.016],[871.07,0.0522],[1260.76,0.101],[491.72,0.0415],[548.76,0.0474],[220.1,0.0226],[995.9,0.216],[273.35,0.0342],[461.19,0.0107],[588.09,0.052],[1164.85,0.0327],[294.59,0.0899],[36.91,0.00852],[747.75,0.0947],[982.31,0.0753],[915.97,0.0458],[550.72,0.0316],[738.01,0.0772],[285.44,0.0324],[252.19,0.052],[529.68,0.0148],[507.84,0.00744],[974.53,0.0433],[283.09,0.00559],[468.29,0.0241],[214.0,0.0447],[1152.88,0.0361],[189.01,0.013],[694.02,0.0537],[482.81,0.0294],[422.31,0.0686],[411.61,0.0135],[498.6,0.0194],[657.49,0.0832],[680.95,0.0381],[677.28,0.0168],[618.49,0.149],[769.39,0.105],[722.34,0.0838],[966.12,0.0189],[499.05,0.0619],[626.42,0.0532],[866.8,0.0324],[658.55,0.0214],[595.62,0.0511],[903.29,0.0523],[211.01,0.0177],[1080.63,0.063],[293.61,0.0516],[594.93,0.174],[285.15,0.000419],[431.79,0.0312],[137.85,0.0332],[676.35,0.0985],[488.03,0.03],[891.33,0.0579],[415.57,0.0192],[1001.67,0.000683],[463.26,0.116],[589.22,0.0282],[458.23,0.0238],[879.1,0.259],[231.4,0.0391],[823.88,0.173],[946.34,0.0312],[245.61,0.0524],[622.71,0.0508],[563.51,0.0699],[273.37,0.0164],[122.21,0.2],[310.37,0.0264],[533.44,0.0678],[260.5,0.0731],[533.87,0.108],[287.07,0.0123],[506.19,0.0671],[1076.48,0.0566],[738.59,0.0459],[291.55,0.00193],[501.02,0.00214],[444.28,0.0557],[587.04,0.267],[325.46,0.072],[139.69,0.0763],[586.82,0.0061],[462.44,0.00861],[813.7,0.0393],[930.59,0.0398],[625.14,0.0247],[550.04,0.0102],[869.63,0.12],[787.57,0.0518],[1104.28,0.036],[600.15,0.00181],[723.37,0.00661],[957.74,0.0359],[842.31,0.054],[813.76,0.309],[622.0,0.0263],[672.8,0.0457],[128.68,0.0305],[536.78,0.0838],[625.67,0.0196],[671.1,0.0688],[210.4,0.0352],[649.64,0.0328],[778.47,0.0334],[702.78,0.0509],[746.28,0.0642],[965.89,0.0362],[752.66,0.0563],[772.38,0.0231],[494.89,0.0941],[543.69,0.0675],[1041.47,0.0538],[582.07,0.0335],[674.49,0.104],[813.11,0.0682],[1065.45,0.0881],[139.5,0.00421],[82.09,0.0013],[584.16,0.068],[785.89,0.0856],[505.36,0.036],[836.4,0.0509],[1046.41,0.14],[759.74,0.0331],[850.87,0.0714],[843.26,0.0802],[295.67,0.0413],[142.26,0.0124],[815.02,0.104],[1014.28,0.076],[539.56,0.0383],[758.44,0.0253],[1006.12,0.0212],[476.17,0.0471],[802.98,0.0784],[923.45,0.023],[251.34,0.0125],[203.71,0.0469],[109.76,0.0461],[588.64,0.0543],[644.83,0.0265],[847.32,0.0302],[948.42,0.0477],[421.22,0.00205],[592.96,0.0578],[513.72,0.0387],[736.17,0.058],[70.8,0.00514],[697.67,0.0482],[249.54,0.023],[478.88,0.0326],[608.0,0.0518],[497.42,0.117],[1092.25,0.161],[586.61,0.0433],[828.2,0.056],[801.8,0.0585],[664.67,0.0758],[866.85,0.0768],[161.84,0.0828],[509.45,0.0841],[620.36,0.0386],[136.82,0.011],[911.74,0.0903],[954.08,0.0584],[939.78,0.0534],[1848.91,0.0489],[640.73,0.0632],[551.2,0.0343],[536.49,0.0544],[557.82,0.0483],[581.42,0.125],[1100.12,0.196],[756.61,0.0731],[117.89,0.0325],[656.16,0.037],[638.82,0.0301],[301.07,0.0906],[728.79,0.21],[650.66,0.0703],[1148.83,0.168],[899.26,0.0677],[545.32,0.00286],[302.22,0.00548],[744.86,0.00378],[761.18,0.0684],[1093.51,0.0722],[903.16,0.116],[243.63,0.0156],[654.33,0.0118],[700.29,0.0418],[775.39,0.0346],[234.23,0.031],[407.24,0.0422],[612.57,0.0389],[661.84,0.0992],[494.76,0.00207],[1278.41,0.541],[533.29,0.016],[273.75,0.0107],[681.24,0.0882],[508.83,0.00684],[482.63,0.0293],[226.83,0.0193],[816.33,0.143],[928.7,0.0486],[1552.52,0.0648],[865.64,0.0689],[1079.11,0.0932],[443.38,0.0724],[846.15,0.0801],[574.25,0.00919],[285.73,0.0476],[629.56,0.0471],[114.94,0.28],[504.08,0.0627],[550.07,0.0218],[854.61,0.0453],[187.22,0.0342],[906.3,0.0713],[288.98,0.0439],[768.34,0.0757],[1050.19,0.0329],[1096.49,0.0962],[997.03,0.0661],[596.1,0.0622],[578.65,0.0701],[1432.14,0.224],[255.43,0.0262],[322.16,0.00404],[217.49,0.0262],[1000.12,0.0659],[874.45,0.0985],[474.52,0.00522],[619.14,0.0222],[230.14,0.0144],[919.73,0.0405],[1675.7,0.0264],[421.24,0.00461],[1009.78,0.187],[629.73,0.0115],[787.13,0.0557],[533.66,0.0442],[1050.66,0.0727],[1427.21,0.0693],[412.21,0.00157],[620.09,0.0114],[243.55,0.0312],[601.53,0.0586],[904.55,0.0764],[570.65,0.119],[399.45,0.0869],[462.94,0.0578],[598.56,0.0602],[396.41,0.0158],[532.21,0.077],[867.06,0.0444],[1544.67,0.00906],[467.58,0.0232],[555.93,0.0351],[270.7,0.0126],[3774.91,0.0939],[421.65,0.0001],[305.39,0.0395],[702.2,0.0447],[470.23,0.0118],[760.48,0.00819],[952.06,0.167],[433.06,0.0072],[594.24,0.118],[660.64,0.0351],[519.16,0.024],[564.88,0.00746],[128.97,0.0583],[697.12,0.0419],[974.05,0.09],[102.81,0.0125],[303.77,0.112],[638.28,0.0357],[636.78,0.0617],[1057.36,0.0878],[669.09,0.0395],[530.86,0.00651],[1136.26,0.239],[1200.0,0.0829],[324.03,0.215],[212.83,0.0159],[854.23,0.025],[475.32,0.00823],[605.56,0.0673],[576.41,0.0204],[657.71,0.0549],[336.26,0.233],[260.73,0.162],[205.92,0.0506],[648.22,0.0559],[717.04,0.0215],[386.47,0.00449],[411.36,0.0204],[556.2,0.00964],[452.52,0.0137],[1048.61,0.0598],[485.4,0.0441],[159.08,0.0828],[412.52,0.0214],[769.79,0.0433],[941.5,0.0593],[618.86,0.0539],[548.56,0.0854],[544.02,0.0258],[267.76,0.169],[393.87,0.0166],[229.21,0.0339],[644.24,0.0987],[853.76,0.0446],[759.64,0.183],[406.28,0.0711],[607.31,0.0818],[560.56,0.0245],[689.37,0.0106],[668.12,0.0649],[850.65,0.1],[822.77,0.0923],[473.53,0.102],[650.96,0.0663],[470.26,0.0123],[630.1,0.241],[502.32,0.0215],[548.53,0.00965],[884.92,0.0728],[941.69,0.0769],[557.47,0.0396],[249.05,0.0522],[761.2,0.148],[915.71,0.0507],[436.93,0.0328],[575.91,0.000495],[1217.53,0.0106],[754.52,0.0378],[590.78,0.0362],[738.77,0.051],[677.97,0.0636],[460.37,0.0369],[624.29,0.0628],[161.41,0.0358],[445.54,0.056],[703.77,0.0207],[961.08,0.187],[1557.44,0.0795],[685.88,0.0576],[521.41,0.0677],[1005.35,0.0496],[651.07,0.0171],[778.66,0.0571],[530.07,0.0196],[710.01,0.198],[1046.26,0.042],[478.62,0.0061],[932.4,0.0531],[572.68,0.0135],[1481.41,0.0604],[584.38,0.0773],[567.58,0.0352],[163.78,0.0505],[951.14,0.028],[1031.4,0.0726],[750.69,0.00607],[410.38,0.0465],[153.98,0.0026],[779.22,0.0739],[241.96,0.108],[606.47,0.0354],[876.18,0.0358],[563.65,0.0452],[499.14,0.0134],[597.92,0.00407],[227.44,0.0315],[620.31,0.0468],[595.01,0.0854],[639.66,0.0399],[538.77,0.0183],[874.66,0.0413],[285.54,0.0923],[634.63,0.0417],[673.32,0.00665],[166.26,0.0661],[815.4,0.0599],[838.12,0.0468],[863.63,0.0562],[252.28,0.0327],[842.48,0.0419],[310.39,0.00598],[890.89,0.113],[435.68,0.127],[535.21,0.0703],[732.41,0.117],[842.98,0.0827],[535.63,0.0904],[785.54,0.0166],[927.44,0.152],[454.35,0.0577],[196.77,0.0138],[536.12,0.139],[1124.04,0.0476],[930.45,0.0389],[652.05,0.044],[135.35,0.00225],[472.87,0.0412],[293.16,0.0437],[507.45,0.00743],[608.16,0.0409],[701.01,0.0828],[440.8,0.0162],[293.73,0.0562],[629.55,0.0466],[431.05,0.0656],[869.63,0.188],[917.62,0.0742],[236.42,0.0616],[99.19,0.00702],[626.37,0.0246],[446.35,0.0204],[858.49,0.0596],[615.15,0.0552],[538.16,0.139],[1120.12,0.0374],[874.85,0.0858],[278.47,0.0488],[1206.28,0.0289],[538.04,0.00632],[430.15,0.0767],[199.84,0.0537],[141.29,0.0608],[1039.39,0.0547],[316.41,0.000406],[441.34,0.0671],[488.17,0.136],[560.68,0.0302],[539.78,0.077],[129.15,0.0469],[823.93,0.0356],[232.87,0.0542],[446.24,0.0419],[621.17,0.041],[711.9,0.072],[667.5,0.0485],[1099.36,0.0563],[330.61,0.00659],[158.28,0.0709],[65.27,0.0567],[937.56,0.0398],[1106.03,0.0782],[669.66,0.0761],[284.85,0.0679],[311.9,0.0455],[481.83,0.0251],[877.71,0.0234],[184.68,0.00299],[274.52,0.0432],[1502.21,0.0786],[1081.36,0.0352],[224.8,0.268],[739.36,0.114],[1081.36,0.0575],[885.05,0.0757],[807.52,0.102],[588.32,0.0525],[999.4,0.0503],[303.23,0.0239],[426.54,0.0139],[853.81,0.0354],[491.67,0.0352],[1044.8,0.0465],[544.37,0.053],[286.45,0.0604],[462.69,0.00723],[666.02,0.0289],[596.23,0.0537],[114.08,0.0461],[710.81,0.0395],[319.99,0.0306],[679.68,0.011],[587.73,0.0359],[460.61,0.122],[561.98,0.0357],[556.7,0.0755],[485.07,0.0234],[645.67,0.0337],[888.36,0.0584],[501.71,0.0918],[797.49,0.0525],[889.48,0.0626],[517.49,0.00535],[2276.06,0.0313],[979.48,0.0657],[642.58,0.0478],[198.26,0.0193],[243.77,0.000575],[436.17,0.00582],[662.24,0.0688],[1126.0,0.0501],[547.86,0.021],[669.48,0.0417],[863.66,0.0462],[556.47,0.0603],[567.51,0.155],[1061.84,0.043],[645.6,0.196],[1719.72,0.00668],[246.25,0.0461],[1586.07,0.0412],[609.05,0.0586],[216.77,0.0219],[507.53,0.0405],[239.98,0.00417],[485.75,0.0631],[776.14,0.0508],[140.59,0.033],[537.89,0.0109],[449.15,0.0226],[658.0,0.00801],[1144.41,0.0113],[680.1,0.0744],[864.34,0.0499],[541.98,0.0355],[837.36,0.273],[547.1,0.0239],[896.09,0.0477],[406.89,0.081],[582.94,0.0012],[839.97,0.0867],[684.75,0.0308],[248.28,0.0439],[450.96,0.00211],[1325.48,0.689],[639.46,0.0486],[521.15,0.0359],[954.89,0.319],[481.54,0.0194],[697.34,0.0406],[243.83,0.0488],[891.15,0.0682],[388.79,0.0495],[678.37,0.0165],[182.53,0.0376],[791.03,0.00376],[753.52,0.0593],[585.28,0.00169],[1292.87,0.0789],[578.3,0.00262],[490.52,0.016],[564.16,0.0197],[445.98,0.0231],[1192.21,0.0749],[482.65,0.0538],[778.42,0.061],[266.58,0.0509],[139.49,0.014],[259.94,0.0213],[1102.76,0.022],[911.62,0.039],[50.9,0.0434],[1066.88,0.0661],[2358.04,0.141],[860.43,0.0983],[290.22,0.00651],[547.86,0.0603],[888.46,0.0394],[607.71,0.0328],[612.1,0.0304],[486.68,0.0752],[469.3,0.0511],[259.63,0.0338],[650.95,0.168],[865.53,0.0254],[144.97,0.0235],[441.57,0.0365],[890.83,0.0561],[246.5,0.00428],[534.79,0.00597],[946.29,0.0283],[641.03,0.00224],[600.36,0.0194],[498.93,0.0763],[227.18,0.0051],[768.06,0.0623],[174.78,0.013],[461.27,0.158],[919.77,0.065],[137.79,0.00459],[505.16,0.0286],[751.73,0.042],[508.1,0.0724],[652.27,0.0542],[952.64,0.038],[118.57,0.00441],[265.61,0.0622],[517.17,0.0612],[906.4,0.116],[537.65,0.0388],[291.35,0.0809],[500.34,0.000406],[773.1,0.0913],[810.01,0.0282],[751.39,0.134],[879.11,0.101],[163.41,0.00553],[1464.26,0.0695],[591.97,0.141],[590.47,0.0515],[758.27,0.0801],[704.77,0.0611],[232.21,0.0834],[192.93,0.0437],[564.48,0.047],[749.54,0.0148],[787.44,0.0313],[471.81,0.0434],[262.31,0.045],[502.03,0.0302],[485.0,0.024],[675.71,0.143],[256.24,0.0691],[488.06,0.0522],[491.61,0.0191],[538.88,0.00138],[632.45,0.134],[750.97,0.0678],[962.47,0.0421],[291.33,0.0179],[753.51,0.000533],[1050.62,0.207],[208.49,0.0261],[489.18,0.00423],[451.46,0.00629],[550.2,0.0446],[570.7,0.111],[580.55,0.159],[269.24,0.0209],[1060.81,0.0774],[330.84,0.0509],[601.36,0.0855],[609.42,0.0679],[824.14,0.177],[1390.99,0.157],[472.89,0.0274],[883.86,0.0545],[868.28,0.0472],[597.75,0.00487],[620.35,0.0689],[812.46,0.371],[828.26,0.0388],[769.43,0.0409],[797.34,0.0226],[458.12,0.031],[754.86,0.0558],[512.23,0.0138],[715.71,0.023],[520.62,0.0354],[189.49,0.0442],[543.12,0.0292],[753.83,0.0396],[783.12,0.22],[141.22,0.00445],[816.68,0.0772],[283.91,0.025],[546.56,0.0889],[567.89,0.0729],[720.35,0.0438],[757.78,0.116],[479.66,0.155],[608.01,0.0499],[567.94,0.052],[231.05,0.00825],[454.43,0.055],[432.19,0.0436],[730.33,0.0226],[510.03,0.0682],[761.47,0.0782],[272.91,0.0118],[507.42,0.0622],[660.83,0.0585],[347.4,0.000755],[652.89,0.269],[645.22,0.14],[272.25,0.0548],[221.72,0.027],[541.72,0.0154],[307.44,0.0129],[879.62,0.0569],[539.06,0.0356],[479.01,0.0228],[235.06,0.0249],[518.58,0.0921],[396.99,0.00909],[508.91,0.00923],[525.83,0.0385],[813.75,0.0448],[446.65,0.0528],[471.85,0.0155],[711.17,0.0463],[772.44,0.0617],[475.62,0.187],[421.56,0.0132],[798.25,0.0213],[620.46,0.0614],[791.81,0.0592],[300.89,0.0196],[528.43,0.00949],[716.75,0.0484],[652.67,0.0271],[169.73,0.0199],[575.96,0.0312],[265.05,0.0707],[792.96,0.135],[254.53,0.00534],[565.76,0.0387],[683.71,0.0293],[428.61,0.0471],[815.79,0.103],[241.04,0.0648],[1584.59,1.04],[521.83,0.000961],[520.69,0.075],[417.48,0.0175],[694.35,0.153],[143.02,0.0307],[974.67,0.147],[507.65,0.0655],[311.24,0.0548],[643.96,0.0284],[221.97,0.00731],[618.65,0.0297],[529.16,0.00306],[539.13,0.0401],[676.21,0.185],[545.15,0.0577],[515.54,0.00496],[918.95,0.101],[602.51,0.0211],[913.58,0.0364],[243.83,0.00325],[116.29,0.0442],[589.63,0.0154],[289.55,0.238],[496.65,0.0715],[907.88,0.0489],[858.21,0.102],[579.56,0.0255],[789.84,0.0268],[443.88,0.0548],[441.44,0.0413],[145.54,0.0188],[254.27,0.0913],[844.47,0.159],[733.79,0.0724],[467.09,0.0969],[419.62,0.00543],[452.93,0.019],[1284.34,0.043],[908.55,0.0365],[144.49,0.0842],[341.38,0.0278],[504.67,0.0881],[226.33,0.118],[756.89,0.0591],[588.93,0.0295],[610.37,0.215],[252.15,0.069],[689.68,0.137],[577.8,0.0766],[533.58,0.057],[456.31,0.0276],[241.31,0.0196],[675.36,0.0208],[403.99,0.0517],[711.77,0.129],[969.92,0.0602],[275.13,0.0327],[753.5,0.05],[483.38,0.0641],[734.23,0.0824],[615.88,0.0411],[293.48,0.0658],[898.11,0.0363],[565.81,0.0899],[848.69,0.115],[1488.76,0.0265],[708.52,0.0549],[548.57,0.0202],[426.8,0.135],[678.75,0.0427],[1391.82,0.299],[513.35,0.099],[541.38,0.0169],[416.51,0.0242],[184.81,0.051],[438.78,0.0121],[824.6,0.0669],[433.27,0.0178],[370.87,0.0466],[481.08,0.000324],[636.42,0.000424],[1024.64,0.00793],[3005.92,0.0372],[965.7,0.236],[648.59,0.078],[796.87,0.000487],[559.65,0.0466],[736.12,0.085],[215.38,0.05],[618.51,0.0385],[1565.45,0.0417],[504.13,0.024],[558.02,0.0264],[1348.24,0.039],[265.08,0.0771],[323.76,0.063],[170.78,0.0613],[394.36,0.0152],[114.58,0.00496],[1696.99,0.00992],[253.57,0.0496],[1045.4,0.124],[614.08,0.0272],[508.14,0.05],[410.5,0.0807],[623.8,0.0328],[495.13,0.0138],[886.73,0.0782],[1224.1,0.117],[258.12,0.00983],[444.95,0.0708],[458.61,0.0159],[881.98,0.0669],[493.8,0.029],[268.78,0.0209],[568.21,0.059],[657.82,0.0294],[595.07,0.0667],[636.58,0.0159],[555.62,0.0184],[3382.32,0.523],[1259.32,0.035],[310.69,0.0474],[525.83,0.0376],[1121.91,0.0293],[410.03,0.0128],[894.91,0.107],[465.03,0.0163],[649.67,0.0888],[265.25,0.02],[745.56,0.059],[628.23,0.138],[919.85,0.115],[400.1,0.0189],[857.24,0.0223],[180.4,0.131],[533.48,0.00227],[627.88,0.0395],[548.0,0.0559],[137.53,0.0567],[571.67,0.0541],[1448.18,0.407],[658.99,0.0946],[507.75,0.0186],[577.31,0.0886],[767.54,0.0169],[901.56,0.361],[260.19,0.0152],[708.62,0.146],[343.96,0.0016],[731.07,0.046],[1140.66,0.247],[875.03,0.0189],[542.29,0.0203],[244.65,0.0478],[530.93,0.0253],[78.06,0.0183],[609.7,0.00639],[798.63,0.097],[1013.21,0.00801],[452.05,0.0871],[452.58,0.0358],[583.5,0.043],[630.28,0.0405],[130.6,0.00444],[623.47,0.0627],[1027.45,0.0774],[234.15,0.0657],[551.82,0.00106],[679.25,0.0576],[456.45,0.0357],[600.57,0.0025],[703.59,0.0507],[273.76,0.0144],[290.9,0.073],[446.11,0.047],[566.97,0.0288],[273.03,0.0324],[103.22,0.0141],[249.67,0.0213],[600.2,0.0522],[632.53,0.019],[436.53,0.0336],[456.2,0.172],[281.61,0.0349],[161.26,0.0136],[86.51,0.00579],[450.68,0.0248],[425.34,0.0519],[547.78,0.237],[611.58,0.043],[117.9,0.00714],[638.46,0.0554],[620.07,0.111],[202.58,0.0403],[760.9,0.022],[648.75,0.049],[612.8,0.0139],[603.9,0.00729],[406.5,0.000116],[980.64,0.00725],[630.13,0.0648],[772.4,0.0318],[540.32,0.0352],[762.16,0.0684],[647.98,0.0228],[1031.74,0.0847],[486.54,0.0542],[346.37,0.0618],[171.77,0.00848],[966.09,0.0332],[804.61,0.152],[736.69,0.336],[428.31,0.0289],[483.64,0.0149],[226.08,0.0542],[597.42,0.0999],[171.41,0.11],[829.03,0.00367],[463.35,0.00922],[993.09,0.0403],[638.82,0.0442],[706.89,0.0416],[447.76,0.03],[707.73,0.0218],[539.38,0.000155],[917.59,0.0923],[704.91,0.0775],[187.99,0.0361],[603.45,0.015],[516.45,0.0546],[744.4,0.0658],[489.05,0.0249],[597.57,0.111],[923.94,0.114],[529.53,0.0337],[260.44,0.000574],[309.79,0.0113],[601.22,0.0805],[147.27,0.029],[1193.01,0.0488],[750.66,0.0495],[1059.55,0.0653],[119.91,0.0184],[553.61,0.00239],[299.25,0.0218],[288.54,0.18],[1263.28,0.0743],[242.54,0.0569],[39.14,0.0263],[537.35,0.0342],[860.6,0.0442],[1034.55,0.0106],[114.46,0.0449],[697.83,0.0646],[1035.3,0.0503],[1099.73,0.0558],[484.23,0.0858],[1414.63,0.0635],[300.61,0.00262],[753.7,0.0173],[495.38,0.0366],[1129.45,0.0963],[642.9,0.0356],[862.42,0.0532],[415.88,0.0121],[921.67,0.0544],[625.37,0.0385],[884.57,0.0554],[599.71,0.0355],[675.95,0.0225],[389.77,0.0109],[256.23,0.00483],[1217.37,0.51],[515.44,0.0695],[604.6,0.0673],[795.86,0.048],[700.7,0.0473],[1169.31,0.0399],[483.93,0.0294],[196.36,0.0204],[612.44,0.00993],[543.27,0.263],[769.36,0.0642],[190.34,0.0665],[1083.56,0.145],[651.98,0.00646],[854.66,0.0368],[766.06,0.0588],[691.67,0.00609],[949.46,0.0357],[828.85,0.0703],[477.31,0.0626],[912.92,0.0393],[762.41,0.0711],[479.86,0.0225],[636.33,0.0179],[599.05,0.0861],[649.07,0.0427],[253.96,0.00216],[283.05,0.0616],[136.35,0.0631],[820.87,0.0729],[956.69,0.0369],[683.82,0.0409],[748.47,0.0035],[317.37,0.0754],[503.43,0.0213],[477.43,0.0552],[1094.6,0.0665],[235.32,0.0507],[239.26,0.0454],[248.93,0.06],[399.12,0.00465],[420.92,0.0333],[951.64,0.0759],[226.94,0.0353],[534.26,0.042],[577.74,0.00573],[225.0,0.0315],[766.54,0.145],[663.61,0.0325],[147.27,0.00147],[561.64,0.0201],[251.55,0.00942],[786.8,0.0591],[282.67,0.0182],[871.86,0.101],[548.43,0.0358],[494.84,0.0326],[571.15,0.0566],[426.38,0.0347],[1218.0,0.0668],[591.0,0.0401],[420.17,0.015],[895.44,0.013],[284.94,0.0344],[297.81,0.0461],[446.54,0.102],[623.29,0.0504],[697.96,0.0619],[109.39,2.63],[515.28,0.00402],[411.5,0.00651],[694.37,0.0262],[964.43,0.0563],[834.47,0.0328],[261.63,0.000774],[213.25,0.0152],[891.27,0.0604],[216.44,0.0346],[501.75,0.0502],[919.52,0.038],[1106.43,0.0381],[518.6,0.0595],[855.25,0.0702],[691.59,0.00676],[893.07,0.112],[1226.86,0.0274],[890.77,0.203],[482.25,0.0731],[451.61,0.00483],[456.41,0.0351],[431.93,0.00351],[548.19,0.0173],[659.76,0.0213],[398.54,0.0264],[563.22,0.0615],[162.11,0.0427],[787.85,0.053],[797.51,0.199],[291.2,0.0127],[932.36,0.0519],[1058.87,0.05],[619.73,0.00933],[191.24,0.035],[484.98,0.0361],[417.57,0.0487],[322.33,0.0931],[500.1,0.0118],[1190.33,0.0515],[656.15,0.0498],[1266.89,0.172],[650.52,0.0396],[504.74,0.0526],[983.13,0.0621],[690.58,0.14],[151.4,0.0439],[408.6,0.0477],[890.26,0.0577],[580.73,0.052],[523.31,0.00355],[782.62,0.0391],[253.28,0.0115],[831.44,0.0528],[308.37,0.0371],[457.06,0.0306],[889.18,0.0896],[1019.08,0.0289],[539.28,0.0222],[1357.39,0.11],[230.09,0.0566],[332.74,0.0232],[261.15,0.00137],[869.54,0.0291],[1192.36,0.0618],[521.85,0.000755],[1635.0,0.0478],[1386.03,0.0421],[515.85,0.0352],[499.15,0.0586],[648.82,0.0361],[1604.5,0.0457],[526.23,0.0519],[764.04,0.0913],[1663.59,0.263],[926.06,0.192],[210.38,0.0142],[296.26,0.145],[919.35,0.102],[733.48,0.0764],[994.94,0.141],[994.72,0.184],[661.99,0.034],[545.09,0.0116],[577.4,0.021],[873.34,0.0635],[845.92,0.217],[750.89,0.0128],[547.84,0.0347],[119.55,0.0021],[203.6,0.0137],[751.91,0.0217],[812.83,0.0244],[664.02,0.0709],[433.15,0.0604],[758.26,0.143],[505.89,0.0387],[511.31,0.0323],[828.04,0.0738],[311.38,0.0348],[437.37,0.113],[654.47,0.0324],[890.23,0.249],[871.88,0.0566],[139.05,0.0252],[731.18,0.424],[460.98,0.0493],[297.38,0.0106],[405.08,0.0153],[803.68,0.055],[471.19,0.00326],[504.88,0.0179],[512.93,0.0863],[515.45,0.0229],[85.22,0.0241],[1556.74,0.428],[679.59,0.042],[74.62,0.0019],[945.0,0.0994],[213.81,0.0204],[768.22,0.00237],[897.08,0.0511],[499.73,0.00665],[173.74,0.0149],[740.53,0.0727],[808.31,0.0501],[147.44,0.0403],[853.35,0.471],[663.49,0.16],[647.41,0.0283],[773.56,0.0607],[269.23,0.0107],[756.56,0.0522],[773.04,0.0252],[910.18,0.0157],[83.89,0.066],[891.16,0.0424],[2510.95,0.0353],[732.06,0.0624],[694.09,0.0184],[192.84,0.0184],[476.04,0.0183],[425.83,0.00199],[558.6,0.0573],[1003.54,0.118],[629.93,0.042],[522.57,0.188],[307.85,0.00421],[639.39,0.0884],[889.43,0.106],[789.71,0.0238],[287.23,0.0397],[533.75,0.0869],[607.76,0.0736],[219.89,0.0549],[521.72,0.0279],[180.71,0.0272],[174.87,0.209],[699.42,0.0892],[641.35,0.0717],[389.67,0.00707],[692.4,0.0931],[159.21,0.0236],[614.95,0.0576],[482.3,0.177],[742.42,0.0827],[502.97,0.0162],[899.52,0.0395],[916.61,0.0355],[570.36,0.186],[688.71,0.0252],[877.75,0.0962],[693.82,0.00896],[794.19,0.0597],[491.54,0.0142],[1199.24,0.00217],[604.85,0.062],[758.3,0.036],[792.99,0.0607],[803.86,0.0261],[996.86,0.0736],[852.51,0.0486],[1011.96,0.143],[660.68,0.0369],[1365.16,0.192],[607.35,0.0488],[1012.29,0.0997],[553.32,0.132],[956.77,0.0439],[533.84,0.0717],[648.74,0.297],[500.09,0.000824],[478.39,0.0446],[949.73,0.219],[66.19,0.00368],[521.66,0.0677],[567.01,0.053],[970.67,0.0519],[213.55,0.015],[200.12,0.0687],[818.3,0.0661],[462.12,0.0181],[172.44,0.13],[680.4,0.0681],[826.71,0.0605],[611.72,0.0379],[569.76,0.073],[2998.22,0.18],[1147.18,0.208],[1123.77,0.0365],[569.5,0.00659],[571.06,0.05],[605.16,0.0211],[624.25,0.0284],[705.25,0.0686],[277.1,0.233],[534.63,0.0634],[596.93,0.0297],[466.23,0.0358],[906.18,0.0563],[839.63,0.0964],[777.65,0.0098],[617.54,0.0401],[420.94,0.145],[504.89,0.00866],[2159.92,0.0682],[725.41,0.0689],[1225.05,0.198],[590.47,0.0182],[949.73,0.0548],[226.16,0.0709],[828.42,0.0346],[525.73,0.0343],[613.66,0.0321],[368.25,0.00665],[576.93,0.0744],[546.18,0.0207],[2063.31,0.0634],[166.43,0.0229],[415.23,0.0195],[449.15,0.0383],[2602.5,0.0569],[457.9,0.0132],[641.72,0.0145],[231.36,0.0374],[293.72,0.093],[602.05,0.0614],[684.76,0.0598],[688.9,0.095],[689.71,0.0375],[511.9,0.0428],[500.05,0.0805],[479.76,0.0506],[749.16,0.0581],[630.84,0.0504],[691.83,0.0503],[309.32,0.0254],[500.56,0.043],[464.92,0.048],[360.11,0.00466],[264.99,0.0488],[262.25,0.00291],[1093.68,0.0308],[919.76,0.233],[127.44,0.000368],[298.42,0.0805],[438.14,0.0105],[844.3,0.0559],[451.53,0.0456],[226.95,0.0337],[141.91,0.0598],[981.54,0.176],[205.56,0.0581],[495.4,0.0681],[453.23,0.0225],[715.9,0.0805],[296.64,0.00945],[664.27,0.0504],[571.81,0.0636],[925.65,0.029],[952.39,0.04],[724.1,0.0451],[651.95,0.1],[976.44,0.0697],[205.46,0.0376],[555.3,0.0556],[669.03,0.0496],[451.56,0.103],[310.31,0.0464],[175.26,0.0239],[434.86,0.0445],[649.04,0.0722],[1175.6,0.0861],[1162.91,0.0659],[773.49,0.0491],[457.04,0.0319],[312.09,0.097],[793.37,0.112],[240.53,0.00626],[767.49,0.0618],[122.26,0.0253],[893.62,0.111],[959.42,0.202],[817.01,0.0598],[616.1,0.0477],[590.12,0.0888],[159.29,0.0497],[481.71,0.0331],[468.46,0.0131],[262.11,0.0869],[708.3,0.0304],[651.09,0.0929],[669.16,0.0215],[555.58,0.0069],[467.36,0.0248],[1000.33,0.00631],[627.52,0.0603],[1510.39,0.125],[253.91,0.245],[518.25,0.0685],[475.14,0.00585],[828.65,0.0503],[268.96,0.0429],[260.06,0.0513],[897.11,0.0649],[500.58,0.0144],[512.46,0.0362],[653.32,0.0376],[583.66,0.00249],[1160.64,0.171],[732.43,0.0436],[565.52,0.0694],[336.45,0.0755]],"top":[{"rank":1,"id":"5991734159714775296","name":"","type":"OrbitalAlternative","P":15.74,"fM":11486.62,"gof":2.6,"ly":5590},{"rank":2,"id":"3316050687674598656","name":"","type":"OrbitalAlternative","P":6.29,"fM":1918.51,"gof":1.11,"ly":2270},{"rank":3,"id":"5928370816455687808","name":"","type":"OrbitalAlternative","P":31.59,"fM":1196.21,"gof":1.52,"ly":5760},{"rank":4,"id":"632497706010874240","name":"","type":"OrbitalAlternative","P":31.39,"fM":460.07,"gof":0.96,"ly":2200},{"rank":5,"id":"1533365584518328576","name":"","type":"OrbitalAlternative","P":15.69,"fM":337.93,"gof":-0.38,"ly":2790},{"rank":6,"id":"1538284425878995712","name":"","type":"OrbitalAlternative","P":14.47,"fM":131.59,"gof":0.35,"ly":1790},{"rank":7,"id":"5959603097090964992","name":"","type":"OrbitalAlternative","P":25.23,"fM":130.88,"gof":0.57,"ly":1610},{"rank":8,"id":"4491401821468887552","name":"","type":"OrbitalAlternative","P":31.31,"fM":129.63,"gof":1.68,"ly":2480},{"rank":9,"id":"3640889032890567040","name":"","type":"Orbital","P":1076.22,"fM":121.47,"gof":10.33,"ly":340},{"rank":10,"id":"4467000291193143808","name":"","type":"Orbital","P":1647.58,"fM":111.84,"gof":4.88,"ly":5840},{"rank":11,"id":"824344003814438528","name":"","type":"OrbitalAlternative","P":31.5,"fM":67.7,"gof":1.45,"ly":2640},{"rank":12,"id":"5929746958324419200","name":"","type":"OrbitalAlternative","P":54.0,"fM":59.31,"gof":1.75,"ly":5340},{"rank":13,"id":"5591318172608607232","name":"","type":"OrbitalAlternative","P":24.95,"fM":38.84,"gof":1.48,"ly":1270},{"rank":14,"id":"2852726284550996352","name":"","type":"OrbitalAlternative","P":19.9,"fM":37.31,"gof":1.45,"ly":3110},{"rank":15,"id":"4299244434901041024","name":"","type":"OrbitalAlternative","P":31.5,"fM":34.41,"gof":0.61,"ly":3910},{"rank":16,"id":"2245423750054837888","name":"","type":"OrbitalAlternative","P":91.1,"fM":28.24,"gof":-0.6,"ly":3890},{"rank":17,"id":"4373465352415301632","name":"Gaia BH1","type":"Orbital","P":185.77,"fM":11.09,"gof":0.31,"ly":1560},{"rank":18,"id":"6281177228434199296","name":"","type":"Orbital","P":153.95,"fM":10.21,"gof":8.05,"ly":760},{"rank":19,"id":"5870569352746779008","name":"Gaia BH2","type":"AstroSpectroSB1","P":1352.29,"fM":6.72,"gof":3.07,"ly":3790},{"rank":20,"id":"5406907085973524224","name":"","type":"OrbitalAlternative","P":24.98,"fM":2.77,"gof":1.06,"ly":2000}]};
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const root = document.documentElement;
+const lang = () => root.dataset.lang || 'both';
+const bi = (en, zh) => `<span class="en">${en}</span><span class="zh" lang="zh-Hans">${zh}</span>`;
+const cv = (en, zh) => lang() === 'en' ? en : lang() === 'zh' ? zh : `${en} · ${zh}`;    // canvas text
+const css = n => getComputedStyle(root).getPropertyValue(n).trim();
+const fmt = (x, d = 1) => x.toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
+const fmtMass = x => x >= 100 ? Math.round(x).toLocaleString('en-US') : x >= 10 ? fmt(x, 1) : fmt(x, 2);
+const suns = x => bi(`${fmtMass(x)} Suns`, `${fmtMass(x)} 倍太阳质量`);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- language switch ---------- */
+function setLang(l) {
+  root.dataset.lang = l;
+  try { localStorage.setItem('bhd-lang', l); } catch (e) {}
+  document.querySelectorAll('[data-lang-btn]').forEach(b => b.setAttribute('aria-pressed', b.dataset.langBtn === l));
+  drawChart(); drawSim();
+}
+document.querySelectorAll('[data-lang-btn]').forEach(b => b.addEventListener('click', () => setLang(b.dataset.langBtn)));
+
+/* ---------- simulator (physics: Kepler's third law, circular face-on orbit) ---------- */
+// Slider positions map to log scales so small and large values are both easy to reach.
+const M2_MIN = 0.1, M2_MAX = 20, P_MIN = 5, P_MAX = 2000;
+const toLog = (v, lo, hi) => lo * Math.pow(hi / lo, v / 1000);
+const fromLog = (x, lo, hi) => Math.round(1000 * Math.log(x / lo) / Math.log(hi / lo));
+const sim = { m1: 0.93, m2: 9.62, P: 185.6, theta: 0.7, playing: !reduceMotion, reveal: false };
+const PARALLAX_BH1 = 2.095;   // mas: Gaia BH1 is ~1,560 light-years away
+
+function physics() {
+  const { m1, m2, P } = sim, M = m1 + m2, Pyr = P / 365.25;
+  const a = Math.cbrt(M * Pyr * Pyr);            // separation [AU]
+  const a1 = a * m2 / M, a2 = a * m1 / M;        // each body's distance from the balance point
+  return { a, a1, a2, fM: Math.pow(m2, 3) / (M * M), mas: a1 * PARALLAX_BH1 };
+}
+
+function updateReadouts() {
+  const p = physics();
+  $('#m2-out').innerHTML = suns(sim.m2);
+  $('#m1-out').innerHTML = suns(sim.m1);
+  $('#per-out').innerHTML = bi(`${Math.round(sim.P).toLocaleString('en-US')} days`, `${Math.round(sim.P).toLocaleString('en-US')} 天`);
+  $('#ro-a1').innerHTML = bi(`${fmt(p.a1, 2)} AU`, `${fmt(p.a1, 2)} 天文单位`);
+  $('#ro-mas').innerHTML = bi(`${fmt(p.mas, 2)} mas`, `${fmt(p.mas, 2)} 毫角秒`);
+  $('#ro-fm').innerHTML = suns(p.fM);
+  let badge, text;
+  if (p.fM >= 3) { badge = `<span class="badge b-bh">${cv('Black hole', '黑洞')}</span>`;
+    text = bi('Black-hole range: if this partner gives off no light, it must be a black hole.', '黑洞范围：如果这个伴星不发光，它一定是黑洞。'); }
+  else if (p.fM >= 1.4) { badge = `<span class="badge b-ns">${cv('Neutron star?', '中子星？')}</span>`;
+    text = bi('Neutron-star range: a dead star, or a normal star that we should see shining.', '中子星范围：可能是一颗死亡的恒星，或者是一颗我们应该能看到发光的普通恒星。'); }
+  else { badge = `<span class="badge b-star">${cv('Ordinary', '普通')}</span>`;
+    text = bi('Ordinary-star range: the partner could just be a normal star.', '普通恒星范围：伴星可能只是一颗普通恒星。'); }
+  $('#verdict').innerHTML = badge + `<div>${text}</div>`;
+}
+
+function setSim(o) {
+  Object.assign(sim, o);
+  $('#m2').value = fromLog(sim.m2, M2_MIN, M2_MAX);
+  $('#per').value = fromLog(sim.P, P_MIN, P_MAX);
+  $('#m1').value = sim.m1;
+  updateReadouts(); drawSim();
+}
+$('#m2').addEventListener('input', e => { sim.m2 = toLog(+e.target.value, M2_MIN, M2_MAX); updateReadouts(); drawSim(); });
+$('#per').addEventListener('input', e => { sim.P = toLog(+e.target.value, P_MIN, P_MAX); updateReadouts(); drawSim(); });
+$('#m1').addEventListener('input', e => { sim.m1 = +e.target.value; updateReadouts(); drawSim(); });
+$('#reveal').addEventListener('change', e => { sim.reveal = e.target.checked; drawSim(); });
+const PRESETS = {   // published masses and periods for BH1 and BH2 (El-Badry et al. 2023)
+  sun: { m1: 1, m2: 1, P: 400 }, ns: { m1: 1, m2: 1.4, P: 200 },
+  bh1: { m1: 0.93, m2: 9.62, P: 185.6 }, bh2: { m1: 1.07, m2: 8.94, P: 1277 },
+};
+document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => setSim(PRESETS[b.dataset.preset])));
+function setPauseLabel() { $('#pause').innerHTML = sim.playing ? bi('Pause', '暂停') : bi('Play', '播放'); }
+$('#pause').addEventListener('click', () => { sim.playing = !sim.playing; setPauseLabel(); if (sim.playing) requestAnimationFrame(tick); });
+
+const simCanvas = $('#sim'), sctx = simCanvas.getContext('2d');
+let starfield = [];
+function sizeCanvas(c) {
+  const r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+  c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  return r;
+}
+function makeStars(w, h) {
+  let s = 22; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  starfield = Array.from({ length: 140 }, () => [rnd() * w, rnd() * h, rnd() * 1.1 + 0.2, rnd() * 0.5 + 0.2]);
+}
+function drawSim() {
+  const w = simCanvas.clientWidth, h = simCanvas.clientHeight;
+  if (!w) return;
+  const ctx = sctx, ink = css('--plate-ink'), gold = css('--star'), blue = css('--bh');
+  ctx.clearRect(0, 0, w, h);
+  for (const [x, y, r, a] of starfield) { ctx.globalAlpha = a; ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  const p = physics();
+  // Fixed scale: the widest possible orbit (heaviest partner) fills the panel, so a heavier partner visibly grows the star's loop.
+  const R = Math.min(w, h) * 0.42;
+  const aMax = Math.cbrt((sim.m1 + M2_MAX) * Math.pow(sim.P / 365.25, 2));
+  const k = R / aMax, cx = w / 2, cy = h / 2;
+  const c = Math.cos(sim.theta), s = Math.sin(sim.theta);
+  const sx = cx + p.a1 * k * c, sy = cy + p.a1 * k * s * 0.92;
+  const px = cx - p.a2 * k * c, py = cy - p.a2 * k * s * 0.92;
+  // star's loop: this is what Gaia measures
+  ctx.strokeStyle = gold; ctx.globalAlpha = .55; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(p.a1 * k, 0.5), Math.max(p.a1 * k * 0.92, 0.5), 0, 0, 7); ctx.stroke();
+  ctx.setLineDash([]); ctx.globalAlpha = 1;
+  // partner (only when revealed)
+  if (sim.reveal) {
+    ctx.strokeStyle = blue; ctx.globalAlpha = .45; ctx.setLineDash([2, 5]);
+    ctx.beginPath(); ctx.ellipse(cx, cy, p.a2 * k, p.a2 * k * 0.92, 0, 0, 7); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+    const isBH = sim.m2 >= 3, rr = isBH ? 9 : 4 + sim.m2 * 2;
+    ctx.fillStyle = isBH ? '#000' : '#c9d1ff';
+    ctx.beginPath(); ctx.arc(px, py, rr, 0, 7); ctx.fill();
+    if (isBH) { ctx.strokeStyle = blue; ctx.lineWidth = 2; ctx.stroke(); }
+    ctx.fillStyle = ink; ctx.font = '500 12px "IBM Plex Sans","Noto Sans SC",sans-serif';
+    ctx.fillText(isBH ? cv('black hole', '黑洞') : cv('partner', '伴星'), px + rr + 6, py + 4);
+  }
+  // balance point
+  ctx.strokeStyle = ink; ctx.globalAlpha = .7; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(cx - 6, cy); ctx.lineTo(cx + 6, cy); ctx.moveTo(cx, cy - 6); ctx.lineTo(cx, cy + 6); ctx.stroke();
+  ctx.globalAlpha = 1;
+  // the visible star with a glow
+  const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, 22);
+  g.addColorStop(0, gold); g.addColorStop(0.3, gold + 'aa'); g.addColorStop(1, gold + '00');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, 22, 0, 7); ctx.fill();
+  ctx.fillStyle = '#fff8e6'; ctx.beginPath(); ctx.arc(sx, sy, 5, 0, 7); ctx.fill();
+  ctx.fillStyle = ink; ctx.font = '500 12px "IBM Plex Sans","Noto Sans SC",sans-serif';
+  ctx.fillText(cv('visible star', '可见恒星'), sx + 14, sy - 12);
+  ctx.globalAlpha = .7; ctx.fillText(cv('+ balance point', '+ 平衡点'), 14, h - 14); ctx.globalAlpha = 1;
+}
+let last = null;
+function tick(t) {
+  if (!sim.playing) { last = null; return; }
+  if (last !== null) {
+    const loopSec = Math.min(12, Math.max(2.5, sim.P / 60));   // longer periods look slower
+    sim.theta += (t - last) / 1000 * 2 * Math.PI / loopSec;
+  }
+  last = t; drawSim(); requestAnimationFrame(tick);
+}
+
+/* ---------- real-data chart ---------- */
+const chart = $('#chart'), tip = $('#tip');
+const X = [3, 15000], Y = [1e-7, 3e4];
+let geom = null, hits = [];
+function drawChart() {
+  const r = sizeCanvas(chart), w = r.width, h = r.height, ctx = chart.getContext('2d');
+  const m = { l: w < 500 ? 46 : 60, r: 14, t: 14, b: 44 };
+  const lx = v => m.l + (Math.log10(v) - Math.log10(X[0])) / (Math.log10(X[1]) - Math.log10(X[0])) * (w - m.l - m.r);
+  const ly = v => m.t + (1 - (Math.log10(v) - Math.log10(Y[0])) / (Math.log10(Y[1]) - Math.log10(Y[0]))) * (h - m.t - m.b);
+  geom = { lx, ly };
+  const ink = css('--ink'), ink2 = css('--ink-2'), ink3 = css('--ink-3'), line = css('--line'), red = css('--cand'), blue = css('--bh'), surf = css('--surface');
+  ctx.clearRect(0, 0, w, h);
+  ctx.font = '12px "IBM Plex Mono",monospace'; ctx.lineWidth = 1;
+  const sup = n => String(n).replace(/-/g, '⁻').replace(/\d/g, d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
+  for (let e = 1; e <= 4; e++) {                                   // x grid
+    const x = lx(10 ** e); ctx.strokeStyle = line; ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, h - m.b); ctx.stroke();
+    ctx.fillStyle = ink2; ctx.textAlign = 'center'; ctx.fillText((10 ** e).toLocaleString('en-US'), x, h - m.b + 16);
+  }
+  for (let e = -6; e <= 4; e += (w < 500 ? 2 : 1)) {              // y grid
+    const y = ly(10 ** e); ctx.strokeStyle = line; ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(w - m.r, y); ctx.stroke();
+    ctx.fillStyle = ink2; ctx.textAlign = 'right'; ctx.fillText(e === 0 ? '1' : '10' + sup(e), m.l - 8, y + 4);
+  }
+  ctx.font = '500 12.5px "IBM Plex Sans","Noto Sans SC",sans-serif'; ctx.fillStyle = ink2; ctx.textAlign = 'center';
+  ctx.fillText(cv('Orbital period (days)', '轨道周期（天）'), m.l + (w - m.l - m.r) / 2, h - 8);
+  ctx.save(); ctx.translate(13, m.t + (h - m.t - m.b) / 2); ctx.rotate(-Math.PI / 2);
+  ctx.fillText(cv('Mass function (Suns)', '质量函数（太阳质量）'), 0, 0); ctx.restore();
+  // background binaries
+  ctx.fillStyle = ink3; ctx.globalAlpha = 0.35;
+  for (const [P, f] of DATA.bg) { if (f < Y[0]) continue; ctx.fillRect(lx(P) - 1, ly(f) - 1, 2.2, 2.2); }
+  ctx.globalAlpha = 1;
+  // 3-Sun line
+  const y3 = ly(3); ctx.strokeStyle = ink; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(m.l, y3); ctx.lineTo(w - m.r, y3); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = ink; ctx.textAlign = 'right'; ctx.font = '500 12px "IBM Plex Sans","Noto Sans SC",sans-serif';
+  ctx.fillText(cv('3 Suns: black-hole line', '3 倍太阳质量：黑洞线'), w - m.r - 4, y3 + 16);
+  // candidates and confirmed black holes
+  hits = [];
+  for (const c of DATA.top) {
+    if (c.fM <= 3) continue;
+    const x = lx(c.P), y = ly(c.fM); hits.push({ x, y, c });
+    if (c.name) continue;
+    ctx.fillStyle = red; ctx.strokeStyle = surf; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, 4.5, 0, 7); ctx.fill(); ctx.stroke();
+  }
+  for (const c of DATA.top.filter(c => c.name)) {
+    const x = lx(c.P), y = ly(c.fM);
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) { const rr = i % 2 ? 4.2 : 10, a = -Math.PI / 2 + i * Math.PI / 5; ctx.lineTo(x + rr * Math.cos(a), y + rr * Math.sin(a)); }
+    ctx.closePath(); ctx.fillStyle = blue; ctx.strokeStyle = surf; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+    ctx.fillStyle = ink; ctx.textAlign = 'left'; ctx.font = '600 12.5px "IBM Plex Sans",sans-serif';
+    ctx.fillText(c.name, x + 12, y - 6);
+  }
+}
+function nearest(ev) {
+  const r = chart.getBoundingClientRect(), mx = ev.clientX - r.left, my = ev.clientY - r.top;
+  let best = null, bd = 16;
+  for (const h of hits) { const d = Math.hypot(h.x - mx, h.y - my); if (d < bd) { bd = d; best = h; } }
+  return best;
+}
+chart.addEventListener('pointermove', ev => {
+  const h = nearest(ev);
+  if (!h) { tip.hidden = true; chart.style.cursor = 'default'; return; }
+  chart.style.cursor = 'pointer';
+  const c = h.c;
+  tip.innerHTML = `<div><b>#${c.rank}</b> ${c.name || c.id}</div>` +
+    `<div>${bi('Period', '周期')}: <b>${fmt(c.P, 1)}</b> ${bi('days', '天')}</div>` +
+    `<div>${bi('Mass function', '质量函数')}: <b>${fmtMass(c.fM)}</b> ${bi('Suns', '倍太阳质量')}</div>` +
+    `<div style="opacity:.75">${bi('Click to open case file', '点击打开案件档案')}</div>`;
+  tip.style.left = Math.min(Math.max(h.x, 120), chart.clientWidth - 120) + 'px'; tip.style.top = h.y + 'px'; tip.hidden = false;
+});
+chart.addEventListener('pointerleave', () => { tip.hidden = true; });
+chart.addEventListener('click', ev => {
+  const h = nearest(ev); if (!h) return;
+  selectCase(h.c.rank);
+  $('#cases-section').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+});
+
+/* ---------- case files ---------- */
+const DR3_DAYS = 1038;
+const FLAGS = [
+  { key: 'shaky', test: c => c.type.startsWith('OrbitalAlternative'),
+    en: "Shaky fit type: Gaia's \"alternative\" model for weak, noisy signals", zh: '拟合不可靠：Gaia 为弱信号、高噪声数据准备的"替代"模型' },
+  { key: 'scan', test: c => Math.abs(c.P - 31.5) < 1,
+    en: "Period near 31.5 days: half of Gaia's 63-day scanning cycle, so the telescope's own motion may be creating the wobble", zh: '周期接近 31.5 天：正好是 Gaia 63 天扫描周期的一半，摆动可能来自望远镜自身的运动' },
+  { key: 'long', test: c => c.P > DR3_DAYS,
+    en: 'Orbit longer than the data: Gaia DR3 only watched for about 1,038 days, so it never saw a full loop', zh: '轨道比数据还长：Gaia DR3 只观测了约 1,038 天，没能看到完整的一圈' },
+  { key: 'fit', test: c => c.gof > 3,
+    en: "Poor fit: goodness of fit above 3, so the orbit model doesn't match the measurements well", zh: '拟合较差：拟合优度大于 3，轨道模型与测量结果不太吻合' },
+  { key: 'heavy', test: c => c.fM > 50,
+    en: 'Impossibly heavy: over 50 Suns. The record for a black hole orbiting a star is Gaia BH3, about 33 Suns', zh: '重得不可思议：超过 50 倍太阳质量。绕恒星运行的黑洞纪录是 Gaia BH3，约 33 倍太阳质量' },
+];
+const status = c => c.name ? 'confirmed' : c.fM > 50 ? 'glitch' : 'suspicious';
+const STATUS_COLOR = { confirmed: '--bh', glitch: '--cand', suspicious: '--warn' };
+const FIT_NAME = {
+  Orbital: ['Standard', '标准'], OrbitalAlternative: ['Alternative (weak signal)', '替代解（信号弱）'],
+  AstroSpectroSB1: ['Standard + speed data', '标准 + 速度数据'],
+};
+let current = 1;
+const revealed = new Set();
+
+function renderChips() {
+  $('#cases').innerHTML = DATA.top.map(c => {
+    const dot = revealed.has(c.rank) ? `<i class="dot" style="background:var(${STATUS_COLOR[status(c)]})"></i>` : '';
+    return `<button type="button" class="case" data-rank="${c.rank}" aria-pressed="${c.rank === current}">${dot}
+      <span class="r">#${c.rank}</span><span class="m">${fmtMass(c.fM)} ☉</span>${c.name && revealed.has(c.rank) ? `<span class="nm">${c.name}</span>` : ''}</button>`;
+  }).join('');
+  document.querySelectorAll('.case').forEach(b => b.addEventListener('click', () => selectCase(+b.dataset.rank)));
+}
+function selectCase(rank) {
+  current = rank; const c = DATA.top[rank - 1];
+  $('#case-title').innerHTML = bi(`Case #${rank}`, `案件 #${rank}`) ;
+  const fit = FIT_NAME[c.type] || [c.type, c.type];
+  $('#facts').innerHTML = [
+    [bi('Gaia ID', 'Gaia 编号'), c.id],
+    [bi('Orbital period', '轨道周期'), bi(`${fmt(c.P, 1)} days`, `${fmt(c.P, 1)} 天`)],
+    [bi('Mass function', '质量函数'), suns(c.fM)],
+    [bi('Fit type', '拟合类型'), bi(fit[0], fit[1])],
+    [bi('Goodness of fit (near 0 = good)', '拟合优度（接近 0 = 好）'), fmt(c.gof, 2)],
+    [bi('Distance', '距离'), bi(`${c.ly.toLocaleString('en-US')} light-years`, `${c.ly.toLocaleString('en-US')} 光年`)],
+  ].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+  renderAnswer(revealed.has(rank) ? 'show' : null);
+  renderChips();
+}
+function renderAnswer(guess) {
+  const c = DATA.top[current - 1], box = $('#answer');
+  if (!guess) {
+    box.innerHTML = `<div class="waiting">${bi('Make your call on the left to see the warning-sign check.', '先在左边做出判断，再来看警示信号检查。')}</div>`;
+    return;
+  }
+  revealed.add(current);
+  const st = status(c);
+  const checks = FLAGS.map(f => { const on = f.test(c);
+    return `<li class="${on ? 'on' : 'off'}"><span class="ic ${on ? 'on' : 'off'}">${on ? '!' : '✓'}</span><span>${bi(f.en, f.zh)}</span></li>`; }).join('');
+  const nflags = FLAGS.filter(f => f.test(c)).length;
+  let verdict;
+  if (st === 'confirmed') {
+    verdict = bi('Confirmed black hole. Astronomers measured this star\'s speed with ground-based telescopes and confirmed its dark partner (2022–2023).',
+                 '已确认的黑洞。天文学家用地面望远镜测量了这颗恒星的速度，确认了它看不见的伴星（2022–2023 年）。');
+    if (nflags) verdict += `<div class="small">${bi("It trips warning signs but is real. A warning sign means \"check carefully\", not \"fake\".", '它触发了警示信号，但确实是真的。警示信号的意思是"要仔细检查"，而不是"一定是假的"。')}</div>`;
+  } else if (st === 'glitch') {
+    verdict = bi('Almost certainly a glitch. No black hole this heavy has ever been found orbiting a star.', '几乎可以肯定是测量假象。从未发现过这么重的黑洞绕着恒星运行。');
+  } else {
+    verdict = bi('Suspicious, and not confirmed. It needs more observations before anyone calls it a black hole.', '可疑，尚未确认。在称它为黑洞之前，还需要更多观测。');
+  }
+  const FB = {
+    confirmed: { real: ['Good call!', '判断正确！'], glitch: ['Tricky one! This is a real black hole.', '这个有难度！它是真正的黑洞。'] },
+    glitch: { real: ['Look again at the mass.', '再看看它的质量。'], glitch: ['Good call!', '判断正确！'] },
+    suspicious: { real: ['Maybe, but nobody has confirmed it yet.', '也许吧，但目前还没有人确认。'], glitch: ['Reasonable. Astronomers treat it as suspicious too.', '有道理，天文学家也认为它可疑。'] },
+  };
+  const fb = FB[st][guess];
+  box.innerHTML = `<h3>${bi('Warning-sign check', '警示信号检查')}</h3><ul class="checks">${checks}</ul>
+    <div class="outcome" style="border-color:var(${STATUS_COLOR[st]})">
+      ${fb ? `<div class="fb">${bi(fb[0], fb[1])}</div>` : ''}<div>${verdict}</div></div>`;
+  renderChips();
+}
+document.querySelectorAll('[data-guess]').forEach(b => b.addEventListener('click', () => renderAnswer(b.dataset.guess)));
+$('#reveal-all').addEventListener('click', () => { DATA.top.forEach(c => revealed.add(c.rank)); renderAnswer('show'); });
+
+/* ---------- stats + glossary ---------- */
+const topShaky = DATA.top.filter(c => c.type.startsWith('OrbitalAlternative')).length / DATA.top.length;
+$('#bar-all').style.width = Math.max(DATA.alt_share_all * 100, 0.8) + '%';
+$('#bar-top').style.width = topShaky * 100 + '%';
+$('#pct-all').textContent = fmt(DATA.alt_share_all * 100, 1) + '%';
+$('#pct-top').textContent = Math.round(topShaky * 100) + '%';
+
+const GLOSS = [
+  ['Black hole', '黑洞', 'A dead star so dense that not even light can escape.', '密度极高的死亡恒星，连光都无法逃脱。'],
+  ['Binary star', '双星', 'Two stars, or a star and a dead star, orbiting each other.', '互相绕转的两颗恒星，或一颗恒星加一颗死亡恒星。'],
+  ['Neutron star', '中子星', "The collapsed core of a dead star. It can't weigh more than about 3 Suns.", '恒星死亡后坍缩的核心，最多约 3 倍太阳质量。'],
+  ['Gaia', '盖亚空间望远镜', 'A European Space Agency telescope, launched in 2013, that maps star positions extremely precisely.', '欧洲空间局 2013 年发射的空间望远镜，能极其精确地测量恒星位置。'],
+  ['Wobble', '摆动', 'The tiny loop a star traces because its partner pulls it.', '恒星被伴星牵引而画出的微小圆圈。'],
+  ['Orbital period', '轨道周期', 'How long one full orbit takes.', '转完一整圈所需的时间。'],
+  ['Solar mass (Sun)', '太阳质量', 'Unit of mass: 1 means as heavy as our Sun.', '质量单位：1 表示和太阳一样重。'],
+  ['Mass function', '质量函数', 'The least a hidden partner can weigh, worked out from the wobble.', '根据摆动算出的隐藏伴星的最小质量。'],
+  ["Kepler's third law", '开普勒第三定律', 'The rule linking orbit size, orbit time and mass.', '把轨道大小、轨道周期和质量联系起来的定律。'],
+  ['Parallax', '视差', "How much a star seems to shift as Earth orbits the Sun. It tells us the star's distance.", '地球绕太阳运动时，恒星看起来移动的大小，可以用来测量距离。'],
+  ['Light-year', '光年', 'The distance light travels in a year, about 9.5 trillion km.', '光一年走过的距离，约 9.5 万亿公里。'],
+  ['Milliarcsecond (mas)', '毫角秒', 'A tiny angle: one 3,600,000th of a degree.', '极小的角度：一度的 360 万分之一。'],
+  ['Signal-to-noise', '信噪比', 'How strong a signal is compared with random noise.', '信号强度与随机噪声的比值。'],
+  ['Goodness of fit', '拟合优度', 'How well a model matches the measurements. In Gaia data, near 0 is good.', '模型与测量结果的吻合程度。在 Gaia 数据里，接近 0 表示吻合得好。'],
+  ['Doppler effect', '多普勒效应', "A moving star's light shifts colour slightly, which reveals its speed.", '运动恒星的光颜色会发生微小变化，由此可以测出它的速度。'],
+];
+$('#gloss').innerHTML = `<thead><tr><th class="encol">English</th><th class="zhcol">中文</th><th>${bi('Meaning', '含义')}</th></tr></thead><tbody>` +
+  GLOSS.map(([en, zh, den, dzh]) => `<tr><td class="encol">${en}</td><td class="zhcol" lang="zh-Hans">${zh}</td><td>${bi(den, dzh)}</td></tr>`).join('') + '</tbody>';
+
+/* ---------- start ---------- */
+function layoutSim() { const r = sizeCanvas(simCanvas); makeStars(r.width, r.height); drawSim(); }
+new ResizeObserver(() => { layoutSim(); drawChart(); }).observe(document.body);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { drawChart(); drawSim(); });
+new MutationObserver(() => { drawChart(); drawSim(); }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+document.fonts && document.fonts.ready.then(() => { drawChart(); drawSim(); });
+
+setLang(lang());
+setSim({});
+setPauseLabel();
+selectCase(1);
+layoutSim(); drawChart();
+if (sim.playing) requestAnimationFrame(tick);
+</script>
