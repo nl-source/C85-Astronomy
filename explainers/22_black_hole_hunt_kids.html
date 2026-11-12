@@ -1,0 +1,582 @@
+<title>Hidden Black Hole Hunt</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;800&family=Noto+Sans+SC:wght@500;700&family=ZCOOL+KuaiLe&display=swap">
+<style>
+/* Layout: a storybook app. Top bar, one big night-sky stage, one short text panel, big Back/Next buttons.
+   Deliberately single-theme: the whole story happens at night. */
+:root {
+  color-scheme: dark;
+  --sky: #111a3e;
+  --sky-2: #1d2862;
+  --panel: #1a2350;
+  --line: #2f3b7a;
+  --ink: #fff8ea;
+  --ink-2: #c9cff2;
+  --sun: #ffd23f;        /* Stella and the main buttons */
+  --btn-ink: #1b1442;
+  --pink: #ff8fb1;
+  --mint: #5fe0b7;
+  --violet: #a58bff;
+  --glow: #ff9f43;       /* black-hole ring */
+  --gaia: #4fa3ff;
+  --font-en: "Baloo 2", "Noto Sans SC", system-ui, sans-serif;
+  --font-zh-head: "ZCOOL KuaiLe", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+html, body { background: var(--sky); color: var(--ink); }
+body { font-family: var(--font-en); font-size: 20px; line-height: 1.45; }
+:root[data-lang="zh"] body { font-family: var(--font-zh); }
+.app { max-width: 860px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 40px; display: grid; gap: 14px; }
+
+.top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.brand { font-weight: 800; font-size: 20px; letter-spacing: .01em; }
+:root[data-lang="zh"] .brand, :root[data-lang="zh"] h1 { font-family: var(--font-zh-head); font-weight: 400; }
+.top-right { display: flex; gap: 10px; align-items: center; }
+.badges { display: flex; gap: 4px; }
+.badges i { width: 26px; height: 26px; display: block; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); background: var(--line); transition: background .3s, transform .3s; }
+.badges i.on { background: var(--sun); transform: scale(1.12); }
+.lang { display: inline-flex; background: var(--panel); border: 2px solid var(--line); border-radius: 999px; padding: 3px; }
+.lang button { border: 0; background: transparent; color: var(--ink-2); font: 700 16px var(--font-en); padding: 6px 14px; border-radius: 999px; cursor: pointer; min-height: 40px; }
+.lang button[lang="zh-Hans"] { font-family: var(--font-zh); }
+.lang button[aria-pressed="true"] { background: var(--sun); color: var(--btn-ink); }
+
+.dots { display: flex; gap: 8px; justify-content: center; }
+.dots i { width: 12px; height: 12px; border-radius: 50%; background: var(--line); display: block; transition: background .3s, width .3s; }
+.dots i.here { background: var(--sun); width: 30px; border-radius: 6px; }
+.dots i.done { background: var(--ink-2); }
+
+.stage { position: relative; border-radius: 24px; overflow: hidden; background: radial-gradient(120% 90% at 50% 10%, var(--sky-2), var(--sky)); border: 2px solid var(--line); }
+.stage canvas { display: block; width: 100%; aspect-ratio: 16 / 10; max-width: 100%; touch-action: manipulation; cursor: pointer; }
+@media (max-width: 560px) { .stage canvas { aspect-ratio: 1 / 1; } }
+
+.panel { background: var(--panel); border: 2px solid var(--line); border-radius: 24px; padding: 18px 20px; display: grid; gap: 14px; }
+h1 { font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; font-weight: 800; text-wrap: balance; }
+.say { display: grid; gap: 8px; }
+.say p { margin: 0; font-size: clamp(20px, 3.6vw, 24px); max-width: 40ch; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button { font-family: inherit; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.read { display: inline-flex; gap: 8px; align-items: center; background: transparent; color: var(--ink); border: 2px solid var(--line); border-radius: 999px; padding: 6px 16px 6px 10px; font-size: 17px; font-weight: 600; cursor: pointer; min-height: 44px; justify-self: start; }
+.read svg { width: 24px; height: 24px; }
+.big { background: var(--sun); color: var(--btn-ink); border: 0; border-radius: 18px; padding: 12px 22px; font-size: 21px; font-weight: 800; cursor: pointer; min-height: 56px; box-shadow: 0 4px 0 #c9a21c; }
+.big:active { transform: translateY(3px); box-shadow: 0 1px 0 #c9a21c; }
+.soft { background: transparent; color: var(--ink); border: 2px solid var(--line); border-radius: 18px; padding: 10px 18px; font-size: 19px; font-weight: 700; cursor: pointer; min-height: 56px; }
+.soft[disabled] { opacity: .35; cursor: default; }
+.pulse { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.05); } }
+
+.choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.choice { display: grid; justify-items: center; gap: 6px; background: var(--sky); border: 3px solid var(--line); border-radius: 18px; padding: 12px 6px; color: var(--ink); font-size: 19px; font-weight: 700; cursor: pointer; min-height: 96px; align-content: end; }
+.choice[aria-pressed="true"] { border-color: var(--sun); }
+.choice .ball { border-radius: 50%; display: block; }
+.note-line { font-size: 19px; color: var(--sun); font-weight: 700; margin: 0; }
+.home { background: var(--sky); border-radius: 16px; padding: 10px 14px; font-size: 18px; color: var(--ink-2); margin: 0; }
+
+.feedback { min-height: 1.5em; font-size: 21px; font-weight: 700; margin: 0; }
+.feedback.yay { color: var(--sun); }
+.feedback.hmm { color: var(--ink-2); }
+
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { text-align: left; background: var(--sky); border: 3px solid var(--line); border-radius: 18px; padding: 14px 16px; color: var(--ink); cursor: pointer; display: grid; gap: 6px; font-size: 18px; min-height: 90px; }
+.card .q { font-weight: 800; font-size: 19px; }
+.card .a { color: var(--ink-2); }
+.card[aria-expanded="true"] { border-color: var(--violet); }
+.badge-box { display: grid; gap: 10px; justify-items: center; text-align: center; background: var(--sky); border-radius: 20px; padding: 18px; border: 3px dashed var(--sun); }
+.badge-box .who { font-size: clamp(24px, 5vw, 32px); font-weight: 800; color: var(--sun); }
+:root[data-lang="zh"] .badge-box .who { font-family: var(--font-zh-head); font-weight: 400; }
+.badge-box input { font: 600 20px inherit; font-family: inherit; padding: 10px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); width: min(100%, 280px); text-align: center; }
+
+details.grown { border-top: 2px dashed var(--line); padding-top: 10px; font-size: 15.5px; color: var(--ink-2); }
+details.grown summary { cursor: pointer; font-weight: 700; font-size: 16px; }
+details.grown p { margin: 8px 0 0; max-width: 70ch; }
+.nav { display: flex; justify-content: space-between; gap: 10px; }
+footer { font-size: 13.5px; color: var(--ink-2); display: grid; gap: 4px; padding-top: 4px; }
+footer a { color: var(--gaia); }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+</style>
+
+<div class="app">
+  <div class="top">
+    <div class="brand" id="brand"></div>
+    <div class="top-right">
+      <div class="badges" id="badges" aria-label="Detective stars"><i></i><i></i><i></i></div>
+      <div class="lang" role="group" aria-label="Language / 语言">
+        <button type="button" id="lang-en" data-l="en" lang="en">English</button>
+        <button type="button" id="lang-zh" data-l="zh" lang="zh-Hans">中文</button>
+      </div>
+    </div>
+  </div>
+  <div class="dots" id="dots" aria-hidden="true"></div>
+  <div class="stage"><canvas id="stage"></canvas></div>
+  <div class="panel" id="panel" aria-live="polite"></div>
+  <div class="nav">
+    <button type="button" class="soft" id="back"></button>
+    <button type="button" class="big" id="next"></button>
+  </div>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* ================= words (English, 中文) ================= */
+const T = {
+  brand: ['Hidden Black Hole Hunt', '寻找隐藏的黑洞'],
+  read: ['Read to me', '读给我听'],
+  back: ['Back', '上一步'], next: ['Next', '下一步'],
+  grown: ['For grown-ups', '给大人看'],
+  // scene 1
+  s1t: ['Meet Stella', '认识小星'],
+  s1: ['This is Stella the star.', '这是星星小星。'],
+  s1b: ['She keeps going round and round in a little circle. Why?', '她一直在转小圈圈。为什么呢？'],
+  s1go: ["Let's find out!", '我们去看看！'],
+  n1: ['Real stars that have a hidden partner really do move in tiny loops. The Gaia space telescope measures those loops very precisely.', '有隐藏伴星的真实恒星，确实会画出微小的圈。盖亚（Gaia）空间望远镜能非常精确地测量这些圈。'],
+  // scene 2
+  s2t: ['Stars dance in pairs', '星星两两跳舞'],
+  s2: ['Stella has a dance friend.', '小星有一个舞伴。'],
+  s2b: ["Pick a friend. Watch Stella's circle!", '选一个舞伴，看看小星转的圈！'],
+  small: ['Small', '小'], bigf: ['Big', '大'], giant: ['Giant', '超大'],
+  s2see: ["The heavier the friend, the bigger Stella's circle!", '舞伴越重，小星转的圈越大！'],
+  s2home: ['Try it at home: hold hands with a grown-up and spin. Who makes the bigger circle?', '在家试一试：和大人手拉手转圈。谁转的圈更大？'],
+  n2: ["Two objects orbit their shared centre of mass. The heavier the unseen partner, the bigger the visible star's loop. Scientists use the loop size (and how long one loop takes) to work out the partner's mass with Kepler's laws.", '两个天体绕着它们共同的质心转动。看不见的伴星越重，可见恒星画的圈就越大。科学家用圈的大小（以及转一圈所需的时间），通过开普勒定律算出伴星的质量。'],
+  // scene 3
+  s3t: ['The invisible friend', '看不见的舞伴'],
+  s3: ["Some dance friends are black holes. A black hole makes no light, so we can't see it.", '有些舞伴是黑洞。黑洞不发光，所以我们看不见它。'],
+  s3b: ["But Stella still dances! That's our clue.", '但小星还在跳舞！这就是我们的线索。'],
+  glassesOn: ['Put on detective glasses', '戴上侦探眼镜'],
+  glassesOff: ['Take off the glasses', '摘下眼镜'],
+  n3: ['If the partner is heavier than about 3 Suns and gives off no light, it must be a black hole: a normal star that heavy would shine brightly, and neutron stars cannot be that heavy.', '如果伴星比约 3 个太阳还重，却不发光，那它一定是黑洞：这么重的普通恒星会非常亮，而中子星不可能这么重。'],
+  // scene 4
+  s4t: ['Detective game', '侦探游戏'],
+  round: ['Round {n} of 3', '第 {n} 关（共 3 关）'],
+  r1: ['Look for a star that dances.', '找一颗在跳舞的星星。'],
+  r2: ["Careful! One friend is shining, so it isn't hidden.", '小心！有一个舞伴在发光，所以它不是隐藏的。'],
+  r3: ['Tricky! A real dance is a smooth circle.', '有难度哦！真正的舞步是平滑的圆圈。'],
+  ask: ['Which star has a hidden black hole friend? Tap it!', '哪颗星星有隐藏的黑洞舞伴？点一下它！'],
+  pink: ['Pink star', '粉色星星'], mint: ['Green star', '绿色星星'], yellow: ['Yellow star', '黄色星星'],
+  yay: ['You found it! A hidden black hole!', '找到啦！一个隐藏的黑洞！'],
+  still: ['This star is standing still. No dance, no partner!', '这颗星星没有动。不跳舞，就没有舞伴！'],
+  visible: ["Look, its friend is shining! We can see it, so it's not a black hole.", '看，它的舞伴在发光！我们看得见它，所以它不是黑洞。'],
+  glitch: ["This star just jiggles. That's a telescope hiccup, not a dance!", '这颗星星只是乱抖。那是望远镜打了个嗝，不是在跳舞！'],
+  nextRound: ['Next round', '下一关'],
+  allDone: ['You solved all 3! You earned 3 detective stars.', '3 关全部完成！你得到了 3 颗侦探星星。'],
+  n4: ['Round 3 copies real life. In Gaia\'s data, most "black-hole candidates" turn out to be measurement glitches, not black holes, so scientists check every one for warning signs.', '第 3 关模仿了真实情况。在 Gaia 的数据里，大多数"黑洞候选者"其实是测量假象，而不是黑洞，所以科学家会逐一检查它们的警示信号。'],
+  // scene 5
+  s5t: ['Real space detectives', '真正的太空侦探'],
+  s5: ['A space telescope called Gaia watched more stars than you could count in your whole life.', '一台叫盖亚（Gaia）的太空望远镜，观察的星星比你一辈子能数的还要多。'],
+  s5b: ['Scientists checked the 20 most mysterious stars. So far, 2 of them have real hidden black holes. Tap the blue ones!', '科学家检查了最神秘的 20 颗星星。到现在为止，其中 2 颗真的有隐藏的黑洞。点点蓝色的星星！'],
+  bh1: ['Gaia BH1: the closest black hole we know. It is so far away that even light needs 1,560 years to get here!', 'Gaia BH1：我们知道的离地球最近的黑洞。它非常远，连光从那里跑到这里都要 1,560 年！'],
+  bh2: ['Gaia BH2: its star friend takes about 3 and a half years to dance around once!', 'Gaia BH2：它的星星舞伴转一圈要差不多三年半！'],
+  mystery: ['Still a mystery! It might be a telescope hiccup.', '还是个谜！可能是望远镜打了个嗝。'],
+  tapBlue: ['Tap a glowing blue star!', '点一颗发光的蓝色星星！'],
+  n5: ['Data: ESA Gaia mission, Data Release 3 (169,208 binary-star orbits). Of the 20 Gaia binaries whose wobble implies the heaviest hidden partners, two (Gaia BH1 and BH2) were confirmed as black holes in 2022–2023 by El-Badry and colleagues. The other 18 are unconfirmed, and most show signs of measurement problems.', '数据：欧洲空间局 Gaia 任务第三次数据发布（169,208 个双星轨道）。在摆动所显示的隐藏伴星最重的 20 个 Gaia 双星中，有 2 个（Gaia BH1 和 BH2）在 2022–2023 年由 El-Badry 等人确认为黑洞。其余 18 个尚未确认，其中大多数显示出测量问题的迹象。'],
+  // scene 6
+  s6t: ['Wonder questions', '好奇问题'],
+  s6: ['Tap a question to find out!', '点一个问题，看看答案！'],
+  q1: ['Does a black hole suck up everything, like a vacuum cleaner?', '黑洞会像吸尘器一样把所有东西都吸进去吗？'],
+  a1: ['No! Things that are far away just circle around it, like Stella does.', '不会！离得远的东西只会绕着它转，就像小星一样。'],
+  q2: ['Can a black hole eat a star?', '黑洞会吃掉星星吗？'],
+  a2: ['Only if the star gets much too close. Then it gets stretched out like spaghetti!', '只有星星靠得太近时才会。那时星星会被拉得像面条一样长！'],
+  q3: ['Is there a black hole near Earth?', '地球附近有黑洞吗？'],
+  a3: ["The closest one we know, Gaia BH1, is super far away. It can't hurt us.", '我们知道的最近的黑洞 Gaia BH1 也非常非常远，不会伤害我们。'],
+  q4: ['Will we find more hidden black holes?', '我们还会找到更多隐藏的黑洞吗？'],
+  a4: ['Probably! In December 2026 Gaia shares lots of new data. Maybe you will find one when you grow up!', '很可能！2026 年 12 月，Gaia 会公布很多新数据。也许你长大以后会发现一个！'],
+  youAre: ['You are a Black Hole Detective!', '你是黑洞侦探！'],
+  yourName: ['Write your name', '写下你的名字'],
+  again: ['Play again', '再玩一次'],
+  n6: ['Gaia Data Release 4, with about twice as much data, is due on 2 December 2026. Gaia BH3 (about 33 Suns, the heaviest black hole known in our galaxy apart from the central one) was already found in early DR4 data.', 'Gaia 第四次数据发布（数据量约为两倍）预计于 2026 年 12 月 2 日发布。Gaia BH3（约 33 个太阳质量，是银河系中除中心黑洞以外已知最重的黑洞）已经在 DR4 的早期数据中被发现。'],
+  foot: ['Real facts from the ESA Gaia mission (Data Release 3) and the Gaia BH1 and BH2 discovery papers (El-Badry et al. 2023). Made for CS85, project 22.', '真实信息来自欧洲空间局 Gaia 任务（第三次数据发布）以及 Gaia BH1、BH2 的发现论文（El-Badry 等，2023）。为 CS85 第 22 号项目制作。'],
+};
+
+/* ================= state ================= */
+const root = document.documentElement;
+const st = {
+  lang: 'en', scene: 0, t: 0,
+  friend: null, tried: new Set(),       // scene 2
+  glasses: false,                       // scene 3
+  round: 0, layout: [], solved: [false, false, false], fb: null, nope: { slot: -1, until: 0 },   // scene 4
+  picked: null,                         // scene 5
+  open: new Set(), name: '',            // scene 6
+};
+try { st.lang = localStorage.getItem('bhh-lang') || ((navigator.language || '').startsWith('zh') ? 'zh' : 'en'); } catch (e) {}
+try { st.name = localStorage.getItem('bhh-name') || ''; } catch (e) {}
+const L = () => st.lang === 'zh' ? 1 : 0;
+const t = (k, vars) => { let s = (T[k] || [k, k])[L()]; if (vars) for (const v in vars) s = s.replace('{' + v + '}', vars[v]); return s; };
+const $ = s => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ================= read aloud ================= */
+const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+function speak(text) {
+  if (!canSpeak) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = st.lang === 'zh' ? 'zh-CN' : 'en-US'; u.rate = 0.88; u.pitch = 1.1;
+    const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith(st.lang === 'zh' ? 'zh' : 'en'));
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+const SPEAKER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+
+/* ================= scenes ================= */
+const SCENES = [
+  { title: 's1t', say: ['s1', 's1b'], note: 'n1', nextLabel: 's1go' },
+  { title: 's2t', say: ['s2', 's2b'], note: 'n2', controls: scene2Controls },
+  { title: 's3t', say: ['s3', 's3b'], note: 'n3', controls: scene3Controls },
+  { title: 's4t', say: [], note: 'n4', controls: scene4Controls, speakText: () => [t('round', { n: st.round + 1 }), t(['r1', 'r2', 'r3'][st.round]), t('ask')].join(' ') },
+  { title: 's5t', say: ['s5', 's5b'], note: 'n5', controls: scene5Controls },
+  { title: 's6t', say: ['s6'], note: 'n6', controls: scene6Controls },
+];
+
+function render() {
+  root.dataset.lang = st.lang;
+  root.lang = st.lang === 'zh' ? 'zh-Hans' : 'en';
+  document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.l === st.lang));
+  $('#brand').textContent = t('brand');
+  $('#foot').innerHTML = `<span>${t('foot')}</span>`;
+  $('#dots').innerHTML = SCENES.map((_, i) => `<i class="${i === st.scene ? 'here' : i < st.scene ? 'done' : ''}"></i>`).join('');
+  document.querySelectorAll('#badges i').forEach((b, i) => b.classList.toggle('on', st.solved[i]));
+  const sc = SCENES[st.scene];
+  const sayHtml = sc.say.map(k => `<p>${t(k)}</p>`).join('');
+  $('#panel').innerHTML = `
+    <h1>${t(sc.title)}</h1>
+    ${sayHtml ? `<div class="say">${sayHtml}</div>` : ''}
+    ${sc.controls ? sc.controls() : ''}
+    ${canSpeak ? `<button type="button" class="read" id="read">${SPEAKER}<span>${t('read')}</span></button>` : ''}
+    <details class="grown"><summary>${t('grown')}</summary><p>${t(sc.note)}</p></details>`;
+  const back = $('#back'), next = $('#next');
+  back.textContent = t('back'); back.disabled = st.scene === 0;
+  const last = st.scene === SCENES.length - 1;
+  next.textContent = last ? t('again') : t(sc.nextLabel || 'next');
+  next.classList.toggle('pulse', readyForNext());
+  if ($('#read')) $('#read').onclick = () => speak(sc.speakText ? sc.speakText() : [t(sc.title), ...sc.say.map(k => t(k))].join(' '));
+  wire();
+}
+function readyForNext() {
+  if (st.scene === 1) return st.tried.size >= 2;
+  if (st.scene === 2) return st.glasses;
+  if (st.scene === 3) return st.solved.every(Boolean);
+  return st.scene === 0;
+}
+function go(n) {
+  if (canSpeak) try { speechSynthesis.cancel(); } catch (e) {}
+  st.scene = Math.max(0, Math.min(SCENES.length - 1, n));
+  if (st.scene === 3 && !st.layout.length) newRound(st.round);
+  sparks = [];
+  render();
+  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+}
+$('#next').onclick = () => {
+  if (st.scene === SCENES.length - 1) {   // play again
+    Object.assign(st, { friend: null, tried: new Set(), glasses: false, round: 0, layout: [], solved: [false, false, false], fb: null, picked: null, open: new Set() });
+    go(0);
+  } else go(st.scene + 1);
+};
+$('#back').onclick = () => go(st.scene - 1);
+document.querySelectorAll('.lang button').forEach(b => b.onclick = () => {
+  st.lang = b.dataset.l; try { localStorage.setItem('bhh-lang', st.lang); } catch (e) {}
+  if (canSpeak) try { speechSynthesis.cancel(); } catch (e) {}
+  render();
+});
+
+/* ----- scene 2: pick a dance friend ----- */
+const FRIENDS = { small: { m: 0.4, r: 0.045, color: '#ff8fb1', px: 22 }, bigf: { m: 1.5, r: 0.07, color: '#a58bff', px: 34 }, giant: { m: 5, r: 0.1, color: '#5fe0b7', px: 48 } };
+function scene2Controls() {
+  const btns = Object.keys(FRIENDS).map(k => `<button type="button" class="choice" data-friend="${k}" aria-pressed="${st.friend === k}">
+      <span class="ball" style="width:${FRIENDS[k].px}px;height:${FRIENDS[k].px}px;background:${FRIENDS[k].color}"></span>${t(k)}</button>`).join('');
+  const learned = st.tried.size >= 2 ? `<p class="note-line">${t('s2see')}</p><p class="home">${t('s2home')}</p>` : '';
+  return `<div class="choices">${btns}</div>${learned}`;
+}
+/* ----- scene 3: detective glasses ----- */
+function scene3Controls() {
+  return `<div class="row"><button type="button" class="big" id="glasses">${t(st.glasses ? 'glassesOff' : 'glassesOn')}</button></div>`;
+}
+/* ----- scene 4: the game ----- */
+const ROUNDS = [['still', 'bh', 'still'], ['visible', 'bh', 'still'], ['glitch', 'bh', 'visible']];
+const SLOT_COLORS = [['pink', '#ff8fb1'], ['mint', '#5fe0b7'], ['yellow', '#ffd23f']];
+function newRound(r) {
+  st.round = r; st.fb = null;
+  const kinds = ROUNDS[r].slice();
+  for (let i = kinds.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [kinds[i], kinds[j]] = [kinds[j], kinds[i]]; }
+  st.layout = kinds;
+}
+function scene4Controls() {
+  const r = st.round, solved = st.solved[r];
+  const btns = SLOT_COLORS.map(([k, c], i) => `<button type="button" class="choice" data-slot="${i}" style="min-height:64px;align-content:center">
+      <span class="ball" style="width:22px;height:22px;background:${c}"></span>${t(k)}</button>`).join('');
+  let after = '';
+  if (solved && r < 2) after = `<div class="row"><button type="button" class="big pulse" id="next-round">${t('nextRound')}</button></div>`;
+  if (solved && r === 2) after = `<p class="note-line">${t('allDone')}</p>`;
+  const fb = st.fb ? `<p class="feedback ${st.fb === 'yay' ? 'yay' : 'hmm'}">${t(st.fb)}</p>` : '';
+  return `<div class="say"><p><b>${t('round', { n: r + 1 })}${st.lang === 'zh' ? '：' : '.'}</b> ${t(['r1', 'r2', 'r3'][r])}</p><p>${t('ask')}</p></div>
+    <div class="choices">${btns}</div>${fb}${after}`;
+}
+function pickSlot(i) {
+  if (st.scene !== 3) return;
+  const r = st.round;
+  if (st.solved[r]) return;
+  const kind = st.layout[i];
+  if (kind === 'bh') {
+    st.solved[r] = true; st.fb = 'yay';
+    const p = slotPos[i]; if (p) burst(p.bx, p.by, 46);
+    speak(t('yay'));
+  } else {
+    st.fb = kind; st.nope = { slot: i, until: st.t + 0.6 };
+    speak(t(kind));
+  }
+  render();
+}
+/* ----- scene 5: the real 20 ----- */
+const REAL20 = Array.from({ length: 20 }, (_, i) => i === 16 ? 'bh1' : i === 18 ? 'bh2' : 'mystery');  // ranks 17 and 19 in our Gaia list
+function scene5Controls() {
+  const msg = st.picked ? t(st.picked) : t('tapBlue');
+  return `<p class="note-line" style="color:${st.picked && st.picked !== 'mystery' ? 'var(--gaia)' : 'var(--ink-2)'}">${msg}</p>`;
+}
+/* ----- scene 6: wonder cards + badge ----- */
+function scene6Controls() {
+  const cards = [1, 2, 3, 4].map(n => {
+    const open = st.open.has(n);
+    return `<button type="button" class="card" data-card="${n}" aria-expanded="${open}"><span class="q">${t('q' + n)}</span>${open ? `<span class="a">${t('a' + n)}</span>` : ''}</button>`;
+  }).join('');
+  return `<div class="cards">${cards}</div>
+    <div class="badge-box">
+      <div class="who">${st.name ? esc(st.name) + ', ' : ''}${t('youAre')}</div>
+      <label for="kid-name" style="font-size:16px;color:var(--ink-2)">${t('yourName')}</label>
+      <input id="kid-name" maxlength="24" autocomplete="off" value="${esc(st.name)}">
+    </div>`;
+}
+
+function wire() {
+  document.querySelectorAll('[data-friend]').forEach(b => b.onclick = () => {
+    st.friend = b.dataset.friend; st.tried.add(st.friend); render();
+  });
+  if ($('#glasses')) $('#glasses').onclick = () => { st.glasses = !st.glasses; if (st.glasses) burst(bhPos.x, bhPos.y, 20); render(); };
+  document.querySelectorAll('[data-slot]').forEach(b => b.onclick = () => pickSlot(+b.dataset.slot));
+  if ($('#next-round')) $('#next-round').onclick = () => { newRound(st.round + 1); render(); };
+  document.querySelectorAll('[data-card]').forEach(b => b.onclick = () => {
+    const n = +b.dataset.card; st.open.has(n) ? st.open.delete(n) : st.open.add(n);
+    if (st.open.has(n)) speak(t('q' + n) + ' ' + t('a' + n));
+    render();
+  });
+  const name = $('#kid-name');
+  if (name) name.oninput = () => {
+    st.name = name.value; try { localStorage.setItem('bhh-name', st.name); } catch (e) {}
+    $('.badge-box .who').innerHTML = (st.name ? esc(st.name) + ', ' : '') + t('youAre');
+  };
+}
+
+/* ================= drawing ================= */
+const cv = $('#stage'), ctx = cv.getContext('2d');
+let W = 0, H = 0, stars = [], sparks = [], slotPos = [], bhPos = { x: 0, y: 0 }, gridCells = [];
+function resize() {
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  W = r.width; H = r.height; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  let s = 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  stars = Array.from({ length: 90 }, () => ({ x: rnd() * W, y: rnd() * H, r: rnd() * 1.3 + .3, p: rnd() * 6 }));
+}
+new ResizeObserver(resize).observe(cv);
+
+function sky() {
+  ctx.clearRect(0, 0, W, H);
+  for (const s of stars) {
+    ctx.globalAlpha = .35 + .3 * Math.sin(st.t * 1.5 + s.p);
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+function glowDot(x, y, r, color) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, color + 'aa'); g.addColorStop(1, color + '00');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+}
+function face(x, y, s, blink, mood = 'happy') {
+  ctx.fillStyle = '#2a1f4d';
+  const ey = y - s * .08, eh = blink ? s * .02 : s * .1;
+  ctx.beginPath(); ctx.ellipse(x - s * .22, ey, s * .075, eh, 0, 0, 7); ctx.ellipse(x + s * .22, ey, s * .075, eh, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#2a1f4d'; ctx.lineWidth = Math.max(2, s * .06); ctx.lineCap = 'round';
+  ctx.beginPath();
+  if (mood === 'oops') { ctx.arc(x, y + s * .26, s * .12, 1.15 * Math.PI, 1.85 * Math.PI); }
+  else { ctx.arc(x, y + s * .06, s * .2, .18 * Math.PI, .82 * Math.PI); }
+  ctx.stroke();
+  ctx.fillStyle = '#ff6f9b55';
+  ctx.beginPath(); ctx.arc(x - s * .36, y + s * .12, s * .08, 0, 7); ctx.arc(x + s * .36, y + s * .12, s * .08, 0, 7); ctx.fill();
+}
+function drawStar(x, y, s, color, opts = {}) {
+  glowDot(x, y, s * 1.9, color);
+  ctx.save(); ctx.translate(x, y); ctx.rotate(opts.tilt || 0);
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) { const rr = i % 2 ? s * .5 : s, a = -Math.PI / 2 + i * Math.PI / 5; ctx.lineTo(rr * Math.cos(a), rr * Math.sin(a)); }
+  ctx.closePath(); ctx.fillStyle = color; ctx.strokeStyle = color; ctx.lineWidth = s * .28; ctx.lineJoin = 'round';
+  ctx.stroke(); ctx.fill();
+  ctx.restore();
+  const blink = (Math.floor(st.t * 10 + (opts.seed || 0) * 7) % 37) === 0;
+  face(x, y + s * .05, s, blink, opts.mood);
+}
+function drawBall(x, y, r, color) {
+  glowDot(x, y, r * 2.4, color);
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+  face(x, y, r * 1.1, (Math.floor(st.t * 10 + 3) % 41) === 0);
+}
+function drawBlackHole(x, y, r, mode) {
+  if (mode === 'hidden') return;
+  if (mode === 'glasses') {
+    ctx.setLineDash([5, 6]); ctx.strokeStyle = '#ffffffcc'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(x, y, r * 1.2, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x - r * .35, y - r * .1, r * .16, 0, 7); ctx.arc(x + r * .35, y - r * .1, r * .16, 0, 7); ctx.fill();
+    return;
+  }
+  // revealed: glowing ring + dark middle + friendly eyes
+  const g = ctx.createRadialGradient(x, y, r * .8, x, y, r * 2.4);
+  g.addColorStop(0, '#ff9f43ee'); g.addColorStop(.35, '#a58bff88'); g.addColorStop(1, '#a58bff00');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 2.4, 0, 7); ctx.fill();
+  ctx.save(); ctx.translate(x, y); ctx.rotate(st.t * .8);
+  ctx.strokeStyle = '#ffd08a'; ctx.lineWidth = r * .22; ctx.beginPath(); ctx.ellipse(0, 0, r * 1.45, r * .55, 0, 0, 7); ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle = '#05030f'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x - r * .35, y - r * .1, r * .17, 0, 7); ctx.arc(x + r * .35, y - r * .1, r * .17, 0, 7); ctx.fill();
+}
+function centerMark(x, y) {
+  ctx.strokeStyle = '#ffffff55'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y); ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6); ctx.stroke();
+}
+function loopTrail(x, y, r, color) {
+  ctx.setLineDash([4, 7]); ctx.strokeStyle = color + '88'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(x, y, Math.max(r, .5), 0, 7); ctx.stroke(); ctx.setLineDash([]);
+}
+function hands(x1, y1, x2, y2) {
+  ctx.setLineDash([2, 6]); ctx.strokeStyle = '#ffffff40'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.setLineDash([]);
+}
+/* a star dancing with a partner around a balance point */
+function pair(cx, cy, A, m2, starSize, color, partner, speed, phase = 0) {
+  const a1 = A * m2 / (1 + m2), a2 = A / (1 + m2), th = st.t * speed + phase;
+  const sx = cx + a1 * Math.cos(th), sy = cy + a1 * Math.sin(th);
+  const px = cx - a2 * Math.cos(th), py = cy - a2 * Math.sin(th);
+  loopTrail(cx, cy, a1, color);
+  if (partner.kind !== 'hidden') hands(sx, sy, px, py);
+  if (partner.kind === 'ball') drawBall(px, py, partner.r, partner.color);
+  else if (partner.kind !== 'none') drawBlackHole(px, py, partner.r, partner.kind);
+  centerMark(cx, cy);
+  drawStar(sx, sy, starSize, color, { tilt: Math.sin(st.t * 2) * .12 });
+  return { sx, sy, px, py };
+}
+
+/* sparkles */
+function burst(x, y, n) {
+  if (reduce) n = Math.round(n / 3);
+  const cols = ['#ffd23f', '#ff8fb1', '#5fe0b7', '#a58bff', '#ffffff'];
+  for (let i = 0; i < n; i++) { const a = Math.random() * 7, v = 60 + Math.random() * 160;
+    sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, c: cols[i % cols.length], s: 3 + Math.random() * 4 }); }
+}
+function drawSparks(dt) {
+  sparks = sparks.filter(p => (p.life -= dt * .9) > 0);
+  for (const p of sparks) {
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 90 * dt;
+    ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.c;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.life * 6);
+    ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s); ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* per-scene pictures */
+function drawScene() {
+  const m = Math.min(W, H), cx = W / 2, cy = H / 2, sp = reduce ? .6 : 1;
+  if (st.scene === 0) {
+    pair(cx, cy, m * .14, 3, m * .11, '#ffd23f', { kind: 'hidden' }, 1.4 * sp);
+  } else if (st.scene === 1) {
+    if (!st.friend) {
+      const y = cy + Math.sin(st.t * 2) * 4;
+      drawStar(cx, y, m * .11, '#ffd23f', { tilt: Math.sin(st.t * 2) * .1 });
+    } else {
+      const f = FRIENDS[st.friend];
+      pair(cx, cy, m * .3, f.m, m * .09, '#ffd23f', { kind: 'ball', r: m * f.r, color: f.color }, 1.2 * sp);
+    }
+  } else if (st.scene === 2) {
+    const p = pair(cx, cy, m * .3, 6, m * .09, '#ffd23f', { kind: st.glasses ? 'glasses' : 'hidden', r: m * .07 }, 1.2 * sp);
+    bhPos = { x: p.px, y: p.py };
+  } else if (st.scene === 3) {
+    const slotW = W / 3, s = Math.min(slotW, H) ;
+    slotPos = [];
+    st.layout.forEach((kind, i) => {
+      const x = slotW * (i + .5), y = H * .52, color = SLOT_COLORS[i][1], size = s * .16, A = s * .3;
+      const nope = st.nope.slot === i && st.t < st.nope.until;
+      const opts = { seed: i, mood: nope ? 'oops' : 'happy', tilt: nope ? Math.sin(st.t * 40) * .25 : 0 };
+      if (kind === 'still') {
+        drawStar(x, y + Math.sin(st.t * 1.5 + i) * 2, size, color, opts); slotPos[i] = { bx: x, by: y };
+      } else if (kind === 'bh') {
+        const p = pair(x, y, A, 6, size, color, { kind: st.solved[st.round] ? 'revealed' : 'hidden', r: s * .06 }, 1.3 * sp, i);
+        slotPos[i] = { bx: p.px, by: p.py };
+      } else if (kind === 'visible') {
+        pair(x, y, A * .9, 1.2, size, color, { kind: 'ball', r: s * .07, color: '#ffffff' }, 1.1 * sp, i * 2);
+        slotPos[i] = { bx: x, by: y };
+      } else if (kind === 'glitch') {
+        const k = Math.floor(st.t * (reduce ? 3 : 9));
+        const jx = (Math.sin(k * 12.9898 + i) * 43758.5453 % 1) * A * .5, jy = (Math.sin(k * 78.233 + i) * 12345.678 % 1) * A * .5;
+        drawStar(x + jx, y + jy, size, color, opts); slotPos[i] = { bx: x, by: y };
+      }
+      if (nope && kind !== 'glitch') { /* little head shake already shown by tilt */ }
+    });
+  } else if (st.scene === 4) {
+    drawGaiaScene();
+  } else if (st.scene === 5) {
+    pair(cx, cy, m * .3, 6, m * .09, '#ffd23f', { kind: 'revealed', r: m * .06 }, .9 * sp);
+    if (!reduce && Math.random() < .03) burst(Math.random() * W, Math.random() * H * .6, 6);
+  }
+}
+function drawGaia(x, y, s) {
+  // simple Gaia: a big round gold sunshield with a small telescope box on top
+  ctx.fillStyle = '#e9b44c'; ctx.beginPath(); ctx.ellipse(x, y + s * .25, s, s * .28, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#b8862c'; ctx.lineWidth = 2;
+  for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; ctx.beginPath(); ctx.moveTo(x, y + s * .25); ctx.lineTo(x + Math.cos(a) * s, y + s * .25 + Math.sin(a) * s * .28); ctx.stroke(); }
+  ctx.fillStyle = '#c9cff2'; ctx.fillRect(x - s * .3, y - s * .35, s * .6, s * .55);
+  ctx.fillStyle = '#8f98c9'; ctx.fillRect(x - s * .3, y - s * .35, s * .6, s * .1);
+  ctx.fillStyle = '#1b1442'; ctx.beginPath(); ctx.arc(x + s * .12, y - s * .05, s * .1, 0, 7); ctx.fill();
+  ctx.fillStyle = '#fff8ea'; ctx.font = `700 ${Math.max(14, s * .3)}px "Baloo 2", sans-serif`; ctx.textAlign = 'center';
+  ctx.fillText('Gaia', x, y + s * .9);
+}
+function drawGaiaScene() {
+  const top = H * .3, gx = W / 2, gs = Math.min(W, H) * .13;
+  drawGaia(gx, top * .45, gs);
+  const cols = 5, rows = 4, gx0 = W * .08, gy0 = top + 6, cw = (W * .84) / cols, ch = (H - gy0 - 10) / rows;
+  // Gaia's scanning beam sweeps over the stars
+  const sweep = gx0 + ((st.t * .25) % 1) * cols * cw;
+  ctx.fillStyle = '#4fa3ff14'; ctx.beginPath(); ctx.moveTo(gx, top * .45); ctx.lineTo(sweep - cw * .6, H); ctx.lineTo(sweep + cw * .6, H); ctx.closePath(); ctx.fill();
+  gridCells = [];
+  REAL20.forEach((kind, i) => {
+    const c = i % cols, r = Math.floor(i / cols), x = gx0 + cw * (c + .5), y = gy0 + ch * (r + .5);
+    const s = Math.min(cw, ch) * .24, sel = st.picked && st.pickedIndex === i;
+    gridCells.push({ x, y, w: cw, h: ch, kind, i });
+    if (kind === 'mystery') drawStar(x, y, s * (sel ? 1.15 : .9), '#8f98c9', { seed: i, mood: 'happy' });
+    else {
+      const pulse = 1 + .08 * Math.sin(st.t * 4 + i);
+      drawStar(x, y, s * 1.15 * pulse * (sel ? 1.15 : 1), '#4fa3ff', { seed: i });
+      if (sel) { ctx.fillStyle = '#fff8ea'; ctx.font = `700 ${Math.max(12, s * .7)}px "Baloo 2", sans-serif`; ctx.textAlign = 'center'; ctx.fillText(kind === 'bh1' ? 'Gaia BH1' : 'Gaia BH2', x, y + s * 2.1); }
+    }
+  });
+}
+
+/* taps on the picture */
+cv.addEventListener('click', ev => {
+  const r = cv.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top;
+  if (st.scene === 3) pickSlot(Math.min(2, Math.floor(x / (W / 3))));       // tapping anywhere in a star's third picks it
+  else if (st.scene === 4) {
+    const cell = gridCells.find(c => Math.abs(x - c.x) < c.w / 2 && Math.abs(y - c.y) < c.h / 2);
+    if (cell) { st.picked = cell.kind; st.pickedIndex = cell.i; if (cell.kind !== 'mystery') burst(cell.x, cell.y, 24); speak(t(cell.kind)); render(); }
+  } else if (st.scene === 2) { st.glasses = !st.glasses; if (st.glasses) burst(bhPos.x, bhPos.y, 20); render(); }
+  else burst(x, y, 14);
+});
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now; st.t += dt;
+  if (W) { sky(); drawScene(); drawSparks(dt); }
+  requestAnimationFrame(frame);
+}
+resize(); render(); requestAnimationFrame(frame);
+</script>
