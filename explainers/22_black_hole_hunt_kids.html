@@ -36,7 +36,9 @@ body { font-family: var(--font-en); font-size: 20px; line-height: 1.45; }
 .brand { font-weight: 800; font-size: 20px; background: none; border: 0; color: var(--ink); cursor: pointer; padding: 0; text-align: left; }
 :root[data-lang="zh"] .brand, :root[data-lang="zh"] h1, :root[data-lang="zh"] .tile .tt, :root[data-lang="zh"] .cert .who { font-family: var(--font-zh-head); font-weight: 400; }
 .top-right { display: flex; gap: 10px; align-items: center; }
-.count { display: inline-flex; gap: 6px; align-items: center; font-weight: 800; font-size: 18px; }
+.count { display: inline-flex; gap: 6px; align-items: center; font-weight: 800; font-size: 18px; white-space: nowrap; }
+.lang button, .pill { white-space: nowrap; }
+@media (max-width: 420px) { .top-right { gap: 6px; } .lang button { padding: 6px 10px; } .pill { padding: 6px 10px; } }
 .starshape { width: 24px; height: 24px; display: inline-block; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); background: var(--sun); flex: none; }
 .starshape.off { background: var(--line); }
 .lang { display: inline-flex; background: var(--panel); border: 2px solid var(--line); border-radius: 999px; padding: 3px; }
@@ -107,6 +109,22 @@ details.grown p { margin: 8px 0 0; max-width: 70ch; }
 .card .a { color: var(--ink-2); }
 .card[aria-expanded="true"] { border-color: var(--violet); }
 footer { font-size: 13.5px; color: var(--ink-2); padding-top: 4px; }
+/* focus helpers */
+.pill { display: inline-flex; gap: 6px; align-items: center; background: var(--panel); border: 2px solid var(--line); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-size: 16px; font-weight: 700; cursor: pointer; min-height: 44px; }
+.pill svg { width: 22px; height: 22px; }
+.goal { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.goal .starshape { width: 30px; height: 30px; }
+.hint { font-size: 19px; font-weight: 700; background: var(--sky); border: 3px dashed var(--sun); border-radius: 16px; padding: 10px 14px; margin: 0; }
+.nudge { outline: 4px dashed var(--sun) !important; outline-offset: 4px; animation: nudge 1s ease-in-out infinite; }
+@keyframes nudge { 50% { outline-offset: 10px; } }
+:root.calm .pulse, :root.calm .nudge { animation: none; }
+.leadrow { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.settings { display: grid; gap: 12px; }
+.set { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start; background: var(--panel); border: 2px solid var(--line); border-radius: 18px; padding: 14px 16px; cursor: pointer; }
+.set input { width: 28px; height: 28px; accent-color: var(--sun); margin: 2px 0 0; }
+.set b { display: block; font-size: 20px; }
+.set .d { color: var(--ink-2); font-size: 16.5px; }
+.note { color: var(--ink-2); font-size: 16px; margin: 0; max-width: 70ch; }
 @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
 </style>
 
@@ -118,6 +136,7 @@ footer { font-size: 13.5px; color: var(--ink-2); padding-top: 4px; }
     </div>
     <div class="top-right">
       <span class="count" id="count"></span>
+      <button type="button" class="pill" id="helpers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M18 7h2M4 17h4M13 17h7"/><circle cx="15.5" cy="7" r="2.3"/><circle cx="10.5" cy="17" r="2.3"/></svg><span id="helpers-label"></span></button>
       <div class="lang" role="group" aria-label="Language / 语言">
         <button type="button" id="lang-en" data-l="en" lang="en">English</button>
         <button type="button" id="lang-zh" data-l="zh" lang="zh-Hans">中文</button>
@@ -152,6 +171,44 @@ const T = {
   wonderS: ['Big questions about black holes', '关于黑洞的大问题'],
   wonderLead: ['Tap a question to find out!', '点一个问题，看看答案！'],
   foot: ['Real facts from the ESA Gaia mission (Data Release 3), the Gaia BH1, BH2 and BH3 discovery papers, and the Event Horizon Telescope. The games use real physics ideas, made gentle so they are fun to play. Made for CS85, project 22.', '真实信息来自欧洲空间局 Gaia 任务（第三次数据发布）、Gaia BH1、BH2 和 BH3 的发现论文以及事件视界望远镜。游戏采用真实的物理原理，但做了简化，方便好玩。为 CS85 第 22 号项目制作。'],
+
+  /* focus helpers */
+  helpersT: ['Helpers', '小帮手'],
+  helpersLead: ['Turn on what helps your child focus and have fun. Settings are saved on this device.', '打开对孩子专注和玩得开心有帮助的功能。设置会保存在这台设备上。'],
+  s_calm: ['Calm mode', '安静模式'], d_calm: ['Fewer moving and twinkling things, slower motion and no bouncing buttons.', '减少闪烁和移动的东西，动画更慢，按钮不再跳动。'],
+  s_sound: ['Sound effects', '音效'], d_sound: ['Soft sounds for taps, right answers and wins.', '点按、答对和过关时播放轻柔的音效。'],
+  s_autoRead: ['Read aloud automatically', '自动朗读'], d_autoRead: ['Reads instructions, hints and fun facts out loud, without pressing a button.', '不用按按钮，自动朗读说明、提示和有趣的知识。'],
+  s_hints: ['Hints when stuck', '卡住时给提示'], d_hints: ['After a short pause, says what to do next and outlines the button to press.', '停顿一会儿后，提示下一步做什么，并把要按的按钮框出来。'],
+  s_breaks: ['Brain breaks', '大脑休息'], d_breaks: ['Suggests a short movement or breathing break after every 2 missions.', '每完成 2 个任务，建议做一次简短的运动或呼吸休息。'],
+  helpersNote: ['These helpers follow common supports for children with ADHD: short tasks with one clear next step, instant feedback, progress they can see, movement breaks and fewer distractions. Every child is different, so try them and keep what works.', '这些小帮手参考了常见的注意力缺陷多动障碍（ADHD）儿童支持方法：任务短小、每次只有一个明确的下一步、即时反馈、看得见的进度、运动休息以及减少干扰。每个孩子都不一样，试一试，留下有用的功能。'],
+  done: ['Done', '完成'],
+  surprise: ['Surprise me!', '随便选一个！'],
+  hintPre: ['Hint:', '提示：'],
+  h1: ['Tap the yellow Squish button, or tap the star!', '点黄色的"挤一挤"按钮，或者直接点星星！'],
+  h2: ['Press and hold on the rocket. Count 1, 2, 3, then let go!', '按住火箭，数 1、2、3，然后松开！'],
+  h3: ['Tap anywhere around the black hole to throw a star.', '在黑洞周围随便点一下，扔出一颗星星。'],
+  h4: ['Put your finger on a yellow sparkle and keep holding. The rocket flies to it!', '把手指按在黄色星尘上不放，火箭就会飞过去！'],
+  h5: ['Slide the slider all the way to the right.', '把滑块一直拖到最右边。'],
+  h6a: ['Press "+1 Sun" and count out loud!', '按"+1 个太阳"，一边按一边大声数！'],
+  h6b: ['Press "+10 Suns" three times, then "+1 Sun" three times.', '按 3 次"+10 个太阳"，再按 3 次"+1 个太阳"。'],
+  h7a: ['Tap a friend you haven\'t tried yet.', '点一个还没试过的舞伴。'],
+  h7b: ['Tap the black hole friend.', '点黑洞舞伴。'],
+  h7c: ['Tap the yellow glasses button.', '点黄色的眼镜按钮。'],
+  h8a: ['Find the star going round in a circle with nobody next to it.', '找一颗在转圈、旁边却看不到舞伴的星星。'],
+  h8b: ['Tap one of the two blue stars.', '点两颗蓝色星星中的一颗。'],
+  brkT: ['Brain break', '大脑休息'],
+  brkS: ['Move, breathe, then play again', '动一动，深呼吸，再接着玩'],
+  brkReady: ['You played 2 missions! Time for a brain break.', '你已经玩了 2 个任务！该让大脑休息一下了。'],
+  brkBtn: ['Take a brain break', '休息一下'],
+  brkOther: ['Try another break', '换一种休息'],
+  brkDone: ['Great job! Ready to play again?', '做得好！准备好继续玩了吗？'],
+  doneBtn: ['I\'m done!', '我做完了！'],
+  breatheT: ['Black hole breathing', '黑洞呼吸'], breatheI: ['Breathe in slowly as the ring grows. Breathe out as it shrinks.', '光环变大时慢慢吸气，光环变小时呼气。'],
+  inhale: ['Breathe in…', '吸气……'], exhale: ['Breathe out…', '呼气……'],
+  jumpsT: ['Star jumps', '星星跳'], jumpsI: ['Stand up! Jump and stretch your body into a big star, 10 times.', '站起来！跳起来，把身体张开成一颗大星星，跳 10 次。'],
+  jumpN: ['Star jump {n}!', '第 {n} 跳！'],
+  spinT: ['Planet spin', '行星转圈'], spinI: ['Stand up and spin slowly like a planet. Then spin the other way!', '站起来，像行星一样慢慢转圈。然后反方向转！'],
+  spinA: ['Spin this way!', '往这边转！'], spinB: ['Now the other way!', '现在反方向转！'],
 
   /* 1 squish */
   m1t: ['Make a black hole', '造一个黑洞'],
@@ -288,6 +345,11 @@ try { app.lang = localStorage.getItem('bhh-lang') || ((navigator.language || '')
 try { app.name = localStorage.getItem('bhh-name') || ''; } catch (e) {}
 try { JSON.parse(localStorage.getItem('bhh-earned') || '[]').forEach(id => app.earned.add(id)); } catch (e) {}
 const saveEarned = () => { try { localStorage.setItem('bhh-earned', JSON.stringify([...app.earned])); } catch (e) {} };
+app.set = { calm: false, sound: true, autoRead: false, hints: true, breaks: true };
+try { Object.assign(app.set, JSON.parse(localStorage.getItem('bhh-settings') || '{}')); } catch (e) {}
+const saveSet = () => { try { localStorage.setItem('bhh-settings', JSON.stringify(app.set)); } catch (e) {} };
+Object.assign(app, { lastInput: 0, hintOn: false, sinceBreak: 0, brkIdx: 0, brk: null });
+const calmOn = () => app.set.calm || reduce;
 const t = (k, vars) => { let s = (T[k] || [k, k])[app.lang === 'zh' ? 1 : 0]; if (vars) for (const v in vars) s = s.split('{' + v + '}').join(vars[v]); return s; };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 
@@ -305,6 +367,23 @@ function speak(text) {
   } catch (e) {}
 }
 const hush = () => { if (canSpeak) try { speechSynthesis.cancel(); } catch (e) {} };
+const say = text => { if (app.set.autoRead) speak(text); };          // only when "Read aloud automatically" is on
+let AC = null;                                                         // soft sound effects, made with Web Audio
+function sfx(kind) {
+  if (!app.set.sound) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === 'suspended') AC.resume();
+    const notes = { pop: [[660, .06]], good: [[660, .09], [880, .14]], boop: [[240, .16]], win: [[523, .1], [659, .1], [784, .1], [1047, .22]] }[kind];
+    let t0 = AC.currentTime;
+    for (const [f, d] of notes) {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = kind === 'boop' ? 'triangle' : 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.1, t0 + .01); g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
+      o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0 + d + .02); t0 += d * .9;
+    }
+  } catch (e) {}
+}
 const SPEAKER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
 const readBtn = () => canSpeak ? `<button type="button" class="read" id="read">${SPEAKER}<span>${t('read')}</span></button>` : '';
 
@@ -324,7 +403,7 @@ function resize() {
 new ResizeObserver(resize).observe(cv);
 function sky() {
   ctx.clearRect(0, 0, W, H);
-  for (const s of bgStars) { ctx.globalAlpha = .35 + .3 * Math.sin(app.t * 1.5 + s.p); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill(); }
+  for (const s of bgStars) { ctx.globalAlpha = calmOn() ? .4 : .35 + .3 * Math.sin(app.t * 1.5 + s.p); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill(); }
   ctx.globalAlpha = 1;
 }
 function glowDot(x, y, r, color) {
@@ -413,7 +492,7 @@ function text(str, x, y, size, color = '#fff8ea', align = 'center') {
   ctx.fillText(str, x, y);
 }
 function burst(x, y, n) {
-  if (reduce) n = Math.ceil(n / 3);
+  if (calmOn()) n = Math.ceil(n / 3);
   const cols = ['#ffd23f', '#ff8fb1', '#5fe0b7', '#a58bff', '#ffffff'];
   for (let i = 0; i < n; i++) { const a = Math.random() * 7, v = 60 + Math.random() * 170;
     sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, c: cols[i % cols.length], s: 3 + Math.random() * 4 }); }
@@ -440,7 +519,7 @@ function drawCheer(dt) {
    =================================================================== */
 let ms = {};       // state of the mission being played
 let statusFlash = { key: null, until: 0 };
-const flash = (key, secs = 2.2) => { statusFlash = { key, until: app.t + secs }; };
+const flash = (key, secs = 2.2) => { statusFlash = { key, until: app.t + secs }; say(t(key)); };
 
 /* ---------- 1. Make a black hole ---------- */
 const squish = {
@@ -463,12 +542,11 @@ const squish = {
     }
   },
   status() { return t(ms.done ? 'm1d' : ms.taps === 0 ? 'm1goal' : ms.taps < 3 ? 'm1b' : 'm1c'); },
-  controls() { return `<div class="meter" aria-hidden="true"><i id="meter" style="width:${ms.taps / this.TAPS * 100}%"></i></div>
-      <div class="row"><button type="button" class="big" id="squish-btn">${t('m1btn')}</button></div>`; },
+  controls() { return `<div class="row"><button type="button" class="big" id="squish-btn">${t('m1btn')}</button></div>`; },
   wire() { $('#squish-btn').onclick = () => this.down(); },
   down() {
     if (ms.done) { burst(W / 2, H / 2, 10); return; }
-    ms.taps++; ms.shake = 1; burst(W / 2 + (Math.random() - .5) * ms.r, H / 2 + (Math.random() - .5) * ms.r, 8);
+    ms.taps++; ms.shake = 1; sfx('pop'); burst(W / 2 + (Math.random() - .5) * ms.r, H / 2 + (Math.random() - .5) * ms.r, 8);
     const m = $('#meter'); if (m) m.style.width = (ms.taps / this.TAPS * 100) + '%';
     if (ms.taps >= this.TAPS) { ms.done = true; ms.t2 = 0; burst(W / 2, H / 2, 50); setTimeout(() => win(), 1100); }
   },
@@ -513,7 +591,7 @@ const escape = {
       if (sh.escape) {
         sh.v += dt * H * .8; sh.y -= sh.v * dt;
         drawRocket(g.cx, sh.y, 0, s, true);
-        if (sh.y < -s * 3) { ms.ok[ms.world] = true; ms.shot = null; flash('m2yes', 3); burst(g.cx, 20, 20); this.check(); }
+        if (sh.y < -s * 3) { ms.ok[ms.world] = true; ms.shot = null; flash('m2yes', 3); sfx('good'); burst(g.cx, 20, 20); this.check(); }
       } else {
         const T2 = 1.7, h = sh.h, y = rest - h * (1 - Math.pow(2 * sh.t / T2 - 1, 2));
         drawRocket(g.cx, sh.t < T2 ? y : rest, 0, s, sh.t < T2 / 2);
@@ -523,7 +601,7 @@ const escape = {
             ctx.lineTo(g.cx + rr * Math.cos(ang) * .8 + g.r * .9, g.cy + rr * Math.sin(ang)); }
           ctx.stroke(); ctx.globalAlpha = 1;
         }
-        if (sh.t >= T2) { ms.shot = null; if (ms.world === 'bhole') ms.ok.bhole = true; flash(ms.world === 'bhole' ? 'm2bh' : 'm2no', 3); this.check(); }
+        if (sh.t >= T2) { ms.shot = null; if (ms.world === 'bhole') ms.ok.bhole = true; flash(ms.world === 'bhole' ? 'm2bh' : 'm2no', 3); sfx('boop'); this.check(); }
       }
     }
   },
@@ -565,12 +643,12 @@ const orbit = {
     for (const b of ms.bodies) {
       for (let k = 0; k < steps && !b.dead; k++) {
         const dx = b.x - cx, dy = b.y - cy, r2 = dx * dx + dy * dy, r = Math.sqrt(r2);
-        if (r < hz) { b.dead = true; burst(cx, cy, 10); ms.gulps++; flash(ms.gulps >= 2 ? 'm3hint' : 'm3gulp', 2.5); break; }
+        if (r < hz) { b.dead = true; burst(cx, cy, 10); ms.gulps++; sfx('boop'); flash(ms.gulps >= 2 ? 'm3hint' : 'm3gulp', 2.5); break; }
         const a = GM / r2; b.vx -= a * dx / r * h; b.vy -= a * dy / r * h; b.x += b.vx * h; b.y += b.vy * h;
       }
       b.age += dt; b.trail.push([b.x, b.y]); if (b.trail.length > 50) b.trail.shift();
       if (Math.hypot(b.x - cx, b.y - cy) > Math.max(W, H) * 1.2) b.dead = true;
-      if (!b.dead && !b.counted && b.age > 4) { b.counted = true; burst(b.x, b.y, 10); }
+      if (!b.dead && !b.counted && b.age > 4) { b.counted = true; burst(b.x, b.y, 10); sfx('good'); }
     }
     ms.bodies = ms.bodies.filter(b => !b.dead).slice(-10);
     ms.n = ms.bodies.filter(b => b.counted).length;
@@ -650,8 +728,8 @@ const pilot = {
     if (s.y < 12) { s.y = 12; s.vy = Math.abs(s.vy) * .4; } if (s.y > H - 12) { s.y = H - 12; s.vy = -Math.abs(s.vy) * .4; }
     const sp = Math.hypot(s.vx, s.vy);
     if (sp > 25) { const want = Math.atan2(s.vy, s.vx) + Math.PI / 2; let d = want - s.ang; d = Math.atan2(Math.sin(d), Math.cos(d)); s.ang += d * Math.min(1, dt * 8); }
-    if (Math.hypot(s.x - cx, s.y - cy) < Rh) { ms.cap = 1.1; flash('m4oops', 2.6); burst(s.x, s.y, 14); }
-    for (const d of ms.dust) if (!d.got) { const p = this.dustPos(d); if (Math.hypot(p.x - s.x, p.y - s.y) < M() * .065) { d.got = true; ms.got++; burst(p.x, p.y, 12); } }
+    if (Math.hypot(s.x - cx, s.y - cy) < Rh) { ms.cap = 1.1; flash('m4oops', 2.6); sfx('boop'); burst(s.x, s.y, 14); }
+    for (const d of ms.dust) if (!d.got) { const p = this.dustPos(d); if (Math.hypot(p.x - s.x, p.y - s.y) < M() * .065) { d.got = true; ms.got++; sfx('good'); burst(p.x, p.y, 12); } }
     if (ms.got >= 8 && !app.earned.has(this.id) && !ms.winning) { ms.winning = true; setTimeout(() => win(), 500); }
     drawRocket(s.x, s.y, s.ang, M() * .045, ms.held || sp > 60);
     if (ms.held) { ctx.strokeStyle = '#ffffff33'; ctx.setLineDash([3, 6]); ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(ms.tx, ms.ty); ctx.stroke(); ctx.setLineDash([]); }
@@ -751,7 +829,7 @@ const weigh = {
       drawBall(rx - pw / 2 + sr * 1.6 + col * (pw - sr * 3.2) / 4, y - row * sr * 2.1, sr, '#ffd23f'); }
     text(String(ms.suns), rx, ry - M() * .02 - (bags ? M() * .08 : 0) - Math.ceil(ones / 5) * sr * 2.1 - sr, Math.max(22, M() * .07), '#ffd23f');
     const balanced = ms.suns === sc.target;
-    if (balanced && !ms.bal) { ms.bal = true; burst(cx, py, 30); renderControls(); if (ms.round === 1 && !app.earned.has(this.id)) setTimeout(() => win(), 900); }
+    if (balanced && !ms.bal) { ms.bal = true; burst(cx, py, 30); sfx('good'); say(this.status()); renderControls(); if (ms.round === 1 && !app.earned.has(this.id)) setTimeout(() => win(), 900); }
     if (!balanced && ms.bal) { ms.bal = false; renderControls(); }
   },
   status() {
@@ -768,10 +846,10 @@ const weigh = {
     return html;
   },
   wire() {
-    document.querySelectorAll('[data-add]').forEach(b => b.onclick = () => { ms.suns = clamp(ms.suns + +b.dataset.add, 0, 60); });
+    document.querySelectorAll('[data-add]').forEach(b => b.onclick = () => { ms.suns = clamp(ms.suns + +b.dataset.add, 0, 60); sfx('pop'); });
     if ($('#bigger')) $('#bigger').onclick = () => { ms.round = 1; ms.suns = 0; ms.bal = false; renderControls(); };
   },
-  down(x) { if (x > W / 2) ms.suns = Math.min(60, ms.suns + 1); },
+  down(x) { if (x > W / 2) { ms.suns = Math.min(60, ms.suns + 1); sfx('pop'); } },
 };
 
 /* ---------- 7. Dancing stars ---------- */
@@ -781,7 +859,7 @@ const dance = {
   icon: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="14" fill="none" stroke="#ffd23f" stroke-width="2.5" stroke-dasharray="3 4"/><circle cx="14" cy="16" r="6" fill="#ffd23f"/><circle cx="33" cy="31" r="4" fill="#a58bff"/></svg>',
   init() { ms = { friend: null, tried: new Set(), glasses: false, bhPos: { x: 0, y: 0 } }; },
   draw() {
-    const m = M(), cx = W / 2, cy = H / 2, sp = reduce ? .6 : 1;
+    const m = M(), cx = W / 2, cy = H / 2, sp = calmOn() ? .6 : 1;
     if (!ms.friend) drawStar(cx, cy + Math.sin(app.t * 2) * 4, m * .11, '#ffd23f', { tilt: Math.sin(app.t * 2) * .1 });
     else if (ms.friend === 'bh') { const p = pair(cx, cy, m * .3, 6, m * .09, '#ffd23f', { kind: ms.glasses ? 'glasses' : 'hidden', r: m * .07 }, 1.2 * sp); ms.bhPos = { x: p.px, y: p.py }; }
     else { const f = FRIENDS[ms.friend]; pair(cx, cy, m * .3, f.m, m * .09, '#ffd23f', { kind: 'ball', r: m * f.r, color: f.color }, 1.2 * sp); }
@@ -804,7 +882,7 @@ const dance = {
     document.querySelectorAll('[data-friend]').forEach(b => b.onclick = () => { ms.friend = b.dataset.friend; if (ms.friend !== 'bh') ms.tried.add(ms.friend); else ms.glasses = false; renderControls(); });
     if ($('#glasses')) $('#glasses').onclick = () => this.toggleGlasses();
   },
-  toggleGlasses() { ms.glasses = !ms.glasses; if (ms.glasses) burst(ms.bhPos.x, ms.bhPos.y, 20); renderControls(); },
+  toggleGlasses() { ms.glasses = !ms.glasses; if (ms.glasses) { burst(ms.bhPos.x, ms.bhPos.y, 20); sfx('good'); } renderControls(); },
   down() { if (ms.friend === 'bh') this.toggleGlasses(); },
 };
 
@@ -823,7 +901,7 @@ const detect = {
   },
   draw() {
     if (ms.gaia) return this.drawGaia();
-    const slotW = W / 3, s = Math.min(slotW, H), sp = reduce ? .6 : 1;
+    const slotW = W / 3, s = Math.min(slotW, H), sp = calmOn() ? .6 : 1;
     ms.layout.forEach((kind, i) => {
       const x = slotW * (i + .5), y = H * .52, color = SLOT_COLORS[i][1], size = s * .16, A = s * .3;
       const nope = ms.nope.slot === i && app.t < ms.nope.until, o = { seed: i, mood: nope ? 'oops' : 'happy', tilt: nope ? Math.sin(app.t * 40) * .25 : 0 };
@@ -871,19 +949,103 @@ const detect = {
     if (ms.gaia || ms.solved[ms.round]) return;
     const kind = ms.layout[i];
     if (kind === 'bh') {
-      ms.solved[ms.round] = true; ms.fb = 'yay'; const p = ms.slotPos[i]; if (p) burst(p.x, p.y, 40); speak(t('yay'));
+      ms.solved[ms.round] = true; ms.fb = 'yay'; sfx('good'); const p = ms.slotPos[i]; if (p) burst(p.x, p.y, 40); say(t('yay'));
       if (ms.round === 2) setTimeout(() => { ms.gaia = true; win(); }, 1500);
-    } else { ms.fb = kind; ms.nope = { slot: i, until: app.t + .6 }; speak(t(kind)); }
+    } else { ms.fb = kind; ms.nope = { slot: i, until: app.t + .6 }; sfx('boop'); say(t(kind)); }
     renderControls();
   },
   down(x, y) {
     if (!ms.gaia) return this.pick(Math.min(2, Math.floor(x / (W / 3))));
     const c = ms.cells.find(c => Math.abs(x - c.x) < c.w / 2 && Math.abs(y - c.y) < c.h / 2);
-    if (c) { ms.picked = c.kind; ms.pi = c.i; if (c.kind !== 'mystery') burst(c.x, c.y, 24); speak(t(c.kind)); }
+    if (c) { ms.picked = c.kind; ms.pi = c.i; if (c.kind !== 'mystery') burst(c.x, c.y, 24); sfx(c.kind === 'mystery' ? 'pop' : 'good'); say(t(c.kind)); }
   },
 };
 
 const MISSIONS = [squish, escape, orbit, pilot, noodle, weigh, dance, detect];
+/* how close each mission is to its star (0 to 1) */
+const PROGRESS = {
+  squish: () => ms.taps / squish.TAPS,
+  escape: () => (ms.ok.moon + ms.ok.earth + ms.ok.bhole) / 3,
+  orbit: () => Math.min(3, ms.n) / 3,
+  pilot: () => ms.got / 8,
+  noodle: () => ms.p,
+  weigh: () => (ms.round + Math.min(1, ms.suns / SCALES[ms.round].target) * (ms.suns > SCALES[ms.round].target ? .5 : 1)) / 2,
+  dance: () => (Math.min(2, ms.tried.size) + (ms.friend === 'bh' ? 1 : 0) + (ms.friend === 'bh' && ms.glasses ? 1 : 0)) / 4,
+  detect: () => ms.solved.filter(Boolean).length / 3,
+};
+/* what to say, and which button to outline, when a child seems stuck */
+const untried = () => ['small', 'bigf', 'giant'].find(k => !ms.tried.has(k)) || 'small';
+const HINTS = {
+  squish: () => ['h1', '#squish-btn'], escape: () => ['h2', '#launch'], orbit: () => ['h3', 'stage'], pilot: () => ['h4', 'stage'],
+  noodle: () => ['h5', '#closer'],
+  weigh: () => ms.bal && ms.round === 0 ? ['m6next', '#bigger'] : ms.round === 0 ? ['h6a', '[data-add="1"]'] : ['h6b', '[data-add="10"]'],
+  dance: () => ms.tried.size < 2 ? ['h7a', `[data-friend="${untried()}"]`] : ms.friend !== 'bh' ? ['h7b', '[data-friend="bh"]'] : ['h7c', '#glasses'],
+  detect: () => ms.gaia ? ['h8b', 'stage'] : ms.solved[ms.round] && ms.round < 2 ? ['nextRound', '#next-round'] : ['h8a', 'stage'],
+};
+const STUCK_SECONDS = 12;
+function showHint() {
+  const [key, sel] = HINTS[cur().id](), el = $('#hint'); if (!el) return;
+  el.textContent = t('hintPre') + ' ' + t(key); el.hidden = false;
+  const target = sel === 'stage' ? $('#stagebox') : $(sel); if (target) target.classList.add('nudge');
+  app.hintOn = true; say(t(key));
+}
+function clearHint() {
+  app.hintOn = false; const el = $('#hint'); if (el) el.hidden = true;
+  document.querySelectorAll('.nudge').forEach(e => e.classList.remove('nudge'));
+}
+function noteInput() { app.lastInput = app.t; if (app.hintOn) clearHint(); }
+document.addEventListener('pointerdown', noteInput, true);
+document.addEventListener('keydown', noteInput, true);
+document.addEventListener('pointermove', e => { if (e.buttons) app.lastInput = app.t; }, true);
+
+/* brain breaks */
+const BREAKS = ['breathe', 'jumps', 'spin'], BREAK_LEN = { breathe: 32, jumps: 26, spin: 24 };
+function openBreak() {
+  hush(); app.screen = 'break'; app.brk = { kind: BREAKS[app.brkIdx++ % BREAKS.length], t0: app.t, done: false };
+  app.sinceBreak = 0; sparks = []; cheer = 0; render(); requestAnimationFrame(resize);
+  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+  say(t(app.brk.kind + 'T') + '. ' + t(app.brk.kind + 'I'));
+}
+function renderBreak() {
+  const k = app.brk.kind;
+  $('#panel').innerHTML = `<div><div class="mnum">${t('brkT')}</div><h1>${t(k + 'T')}</h1></div>
+    <p class="status" id="brk-status"></p>
+    <p class="intro">${t(k + 'I')}</p>
+    <div class="row"><button type="button" class="big" id="brk-done">${t('doneBtn')}</button><button type="button" class="soft" id="brk-other">${t('brkOther')}</button></div>
+    ${readBtn()}`;
+  $('#brk-done').onclick = () => { app.screen = 'map'; render(); };
+  $('#brk-other').onclick = () => openBreak();
+  if ($('#read')) $('#read').onclick = () => speak(t(k + 'T') + '. ' + t(k + 'I'));
+}
+function drawBreak() {
+  const b = app.brk, el = app.t - b.t0, L = BREAK_LEN[b.kind], left = Math.max(0, L - el), cx = W / 2, cy = H / 2, m = M();
+  let msg;
+  if (b.kind === 'breathe') {
+    const ph = (el % 8) / 8, grow = ph < .5 ? ph * 2 : (1 - ph) * 2, e = .5 - .5 * Math.cos(grow * Math.PI);
+    drawBlackHole(cx, cy, m * (.07 + .08 * e));
+    msg = t(ph < .5 ? 'inhale' : 'exhale');
+    text(msg, cx, cy + m * .36, Math.max(20, m * .07), '#fff8ea');
+  } else if (b.kind === 'jumps') {
+    const per = 2.5, n = Math.min(10, Math.floor(el / per) + 1), up = Math.abs(Math.sin(Math.PI * el / per));
+    drawStar(cx, cy + m * .12 - up * m * .22, m * (.09 + .05 * up), '#ffd23f');
+    text(String(n), cx, m * .16, Math.max(24, m * .1), '#ffd23f');
+    msg = t('jumpN', { n });
+  } else {
+    const dir = el < L / 2 ? 1 : -1, a = el < L / 2 ? el * 1.1 : (L / 2) * 1.1 - (el - L / 2) * 1.1, R = m * .3;
+    loopTrail(cx, cy, R, '#5fe0b7'); drawBall(cx, cy, m * .08, '#ffd23f');
+    drawBall(cx + Math.cos(a) * R, cy + Math.sin(a) * R, m * .05, '#5fe0b7');
+    msg = t(dir > 0 ? 'spinA' : 'spinB');
+  }
+  // countdown ring: shrinks as the break goes on
+  const rx = W - m * .1, ry = m * .1, rr = m * .055;
+  ctx.lineWidth = m * .02; ctx.strokeStyle = '#ffffff22'; ctx.beginPath(); ctx.arc(rx, ry, rr, 0, 7); ctx.stroke();
+  ctx.strokeStyle = '#ffd23f'; ctx.beginPath(); ctx.arc(rx, ry, rr, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * left / L); ctx.stroke();
+  if (left === 0) {
+    if (!b.done) { b.done = true; burst(cx, cy, 40); sfx('win'); say(t('brkDone')); const d = $('#brk-done'); if (d) d.classList.add('pulse'); }
+    msg = t('brkDone');
+  }
+  const st = $('#brk-status'); if (st && st.textContent !== msg) st.textContent = msg;
+}
 const cur = () => MISSIONS[app.mi];
 
 /* ===================================================================
@@ -896,6 +1058,8 @@ function renderTop() {
   $('#count').innerHTML = `<i class="starshape"></i>${t('starsOf', { n: app.earned.size })}`;
   const home = $('#home'); home.hidden = app.screen === 'map'; home.textContent = '← ' + t('missions');
   $('#foot').textContent = t('foot');
+  $('#helpers-label').textContent = t('helpersT');
+  root.classList.toggle('calm', calmOn());
 }
 function renderMap() {
   const tiles = MISSIONS.map((m, i) => `<button type="button" class="tile" data-mission="${i}">
@@ -910,28 +1074,45 @@ function renderMap() {
       <div class="who" id="who">${all ? (app.name ? esc(app.name) + (app.lang === 'zh' ? '，' : ', ') : '') + t('certTitle') : t('certSoon')}</div>
       ${all ? `<label for="kid-name" style="font-size:16px;color:var(--ink-2)">${t('yourName')}</label><input id="kid-name" maxlength="24" autocomplete="off" value="${esc(app.name)}">` : ''}
     </div>`;
-  $('#mapview').innerHTML = `<div class="hero"><h1>${t('brand')}</h1><p class="lead">${t('mapLead')}</p></div>
-    <div class="tiles">${tiles}${wonder}</div>${cert}`;
+  const brk = `<button type="button" class="tile wide" id="brk-tile"><span class="ic" style="background:#5fe0b733"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="15" fill="none" stroke="#5fe0b7" stroke-width="4"/><circle cx="24" cy="24" r="7" fill="#5fe0b7"/></svg></span>
+      <span style="display:grid;gap:2px"><span class="tt">${t('brkT')}</span><span class="mn">${t('brkS')}</span></span></button>`;
+  $('#mapview').innerHTML = `<div class="hero"><h1>${t('brand')}</h1><div class="leadrow"><p class="lead">${t('mapLead')}</p><button type="button" class="big" id="surprise">${t('surprise')}</button></div></div>
+    <div class="tiles">${tiles}${wonder}${brk}</div>${cert}`;
+  $('#surprise').onclick = () => { const left = MISSIONS.map((m, i) => i).filter(i => !app.earned.has(MISSIONS[i].id)), pool = left.length ? left : MISSIONS.map((m, i) => i);
+    openMission(pool[Math.floor(Math.random() * pool.length)]); };
+  $('#brk-tile').onclick = () => openBreak();
   document.querySelectorAll('[data-mission]').forEach(b => b.onclick = () => openMission(+b.dataset.mission));
   $('#wonder').onclick = () => { app.screen = 'wonder'; render(); };
   const nm = $('#kid-name');
   if (nm) nm.oninput = () => { app.name = nm.value; try { localStorage.setItem('bhh-name', app.name); } catch (e) {}
     $('#who').innerHTML = (app.name ? esc(app.name) + (app.lang === 'zh' ? '，' : ', ') : '') + t('certTitle'); };
 }
+function renderHelpers() {
+  const items = ['calm', 'sound', 'autoRead', 'hints', 'breaks'].map(k => `<label class="set"><input type="checkbox" data-set="${k}" ${app.set[k] ? 'checked' : ''}>
+      <span><b>${t('s_' + k)}</b><span class="d">${t('d_' + k)}</span></span></label>`).join('');
+  $('#mapview').innerHTML = `<div class="hero"><h1>${t('helpersT')}</h1><p class="lead">${t('helpersLead')}</p></div>
+    <div class="settings">${items}</div><p class="note">${t('helpersNote')}</p>
+    <div class="row"><button type="button" class="big" id="helpers-done">${t('done')}</button></div>`;
+  document.querySelectorAll('[data-set]').forEach(c => c.onchange = () => { app.set[c.dataset.set] = c.checked; saveSet(); renderTop(); if (c.checked && c.dataset.set === 'sound') sfx('good'); });
+  $('#helpers-done').onclick = () => { app.screen = app.prev || 'map'; if (app.screen === 'mission' || app.screen === 'break') app.screen = 'map'; render(); };
+}
 function renderWonder() {
   const cards = [1, 2, 3, 4, 5, 6, 7].map(n => { const open = app.open.has(n);
     return `<button type="button" class="card" data-card="${n}" aria-expanded="${open}"><span class="q">${t('q' + n)}</span>${open ? `<span class="a">${t('a' + n)}</span>` : ''}</button>`; }).join('');
   $('#mapview').innerHTML = `<div class="hero"><h1>${t('wonderT')}</h1><p class="lead">${t('wonderLead')}</p></div><div class="cards">${cards}</div>`;
   document.querySelectorAll('[data-card]').forEach(b => b.onclick = () => { const n = +b.dataset.card;
-    app.open.has(n) ? app.open.delete(n) : app.open.add(n); if (app.open.has(n)) speak(t('q' + n) + ' ' + t('a' + n)); renderWonder(); });
+    app.open.has(n) ? app.open.delete(n) : app.open.add(n); if (app.open.has(n)) { sfx('pop'); say(t('q' + n) + ' ' + t('a' + n)); } renderWonder(); });
 }
 function renderPanel() {
   const m = cur(), won = ms.won;
-  const wow = won ? `<div class="wow"><i class="starshape"></i><div><div class="wt">${t('youDid')}</div><p>${t(m.wow)}</p></div>
-      <div class="row">${app.mi < MISSIONS.length - 1 ? `<button type="button" class="big pulse" id="next-m">${t('nextMission')}</button>` : ''}<button type="button" class="soft" id="to-map">${t('backMap')}</button></div></div>` : '';
+  const brkNow = app.set.breaks && app.sinceBreak >= 2;
+  const wow = won ? `<div class="wow"><i class="starshape"></i><div><div class="wt">${t('youDid')}</div><p>${t(m.wow)}</p>${brkNow ? `<p><b>${t('brkReady')}</b></p>` : ''}</div>
+      <div class="row">${brkNow ? `<button type="button" class="big pulse" id="brk-go">${t('brkBtn')}</button>` : ''}${app.mi < MISSIONS.length - 1 ? `<button type="button" class="${brkNow ? 'soft' : 'big pulse'}" id="next-m">${t('nextMission')}</button>` : ''}<button type="button" class="soft" id="to-map">${t('backMap')}</button></div></div>` : '';
   $('#panel').innerHTML = `<div><div class="mnum">${t('missionN', { n: app.mi + 1 })}</div><h1>${t(m.title)}</h1></div>
+    <div class="goal" aria-hidden="true"><div class="meter"><i id="goalbar"></i></div><i class="starshape ${won ? '' : 'off'}" id="goalstar"></i></div>
     ${wow}
     <p class="status" id="status"></p>
+    <p class="hint" id="hint" hidden></p>
     <div id="controls" style="display:grid;gap:12px">${m.controls()}</div>
     <p class="intro">${t(m.intro)}</p>
     ${readBtn()}
@@ -940,34 +1121,43 @@ function renderPanel() {
   if ($('#read')) $('#read').onclick = () => speak(won ? t('youDid') + ' ' + t(m.wow) : [t(m.title), t(m.intro), m.status()].join(' '));
   if ($('#next-m')) $('#next-m').onclick = () => openMission(app.mi + 1);
   if ($('#to-map')) $('#to-map').onclick = () => { app.screen = 'map'; render(); };
-  lastStatus = null; refreshStatus();
+  if ($('#brk-go')) $('#brk-go').onclick = () => openBreak();
+  lastStatus = null; lastProg = null; app.hintOn = false; refreshStatus();
 }
 function renderControls() { const c = $('#controls'); if (c) { c.innerHTML = cur().controls(); cur().wire(); } refreshStatus(); }
-let lastStatus = null;
+let lastStatus = null, lastProg = null;
 function refreshStatus() {
+  const gb = $('#goalbar');
+  if (gb) { const p = ms.won ? 1 : clamp(PROGRESS[cur().id]() || 0, 0, 1);
+    if (p !== lastProg) { if (lastProg !== null && p > lastProg) noteInput(); lastProg = p; gb.style.width = (p * 100) + '%'; } }
   const el = $('#status'); if (!el) return;
   const s = statusFlash.key && app.t < statusFlash.until ? t(statusFlash.key) : cur().status();
   if (s !== lastStatus) { lastStatus = s; el.textContent = s; }
 }
 function render() {
   hush(); renderTop();
-  const inMission = app.screen === 'mission';
-  $('#mapview').hidden = inMission; $('#stagebox').hidden = !inMission; $('#panel').hidden = !inMission;
-  if (app.screen === 'map') renderMap(); else if (app.screen === 'wonder') renderWonder(); else renderPanel();
+  const onStage = app.screen === 'mission' || app.screen === 'break';
+  $('#mapview').hidden = onStage; $('#stagebox').hidden = !onStage; $('#panel').hidden = !onStage;
+  $('#home').hidden = app.screen === 'map';
+  if (app.screen === 'map') renderMap(); else if (app.screen === 'wonder') renderWonder(); else if (app.screen === 'helpers') renderHelpers();
+  else if (app.screen === 'break') renderBreak(); else renderPanel();
 }
 function openMission(i) {
   app.screen = 'mission'; app.mi = i; sparks = []; cheer = 0; statusFlash = { key: null, until: 0 };
-  cur().init(); render(); requestAnimationFrame(resize);
+  cur().init(); app.lastInput = app.t; render(); requestAnimationFrame(resize);
+  say([t(cur().title), t(cur().intro), cur().status()].join(' '));
   window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
 }
 function win() {
   if (app.screen !== 'mission') return;
   const m = cur(); ms.won = true;
   if (!app.earned.has(m.id)) { app.earned.add(m.id); saveEarned(); }
-  cheer = 2.5; burst(W / 2, H * .22, 40);
+  cheer = calmOn() ? 1.2 : 2.5; burst(W / 2, H * .22, 40); sfx('win'); app.sinceBreak++; clearHint();
+  say(t('youDid') + ' ' + t(m.wow));
   renderTop(); renderPanel();
 }
 $('#home').onclick = () => { app.screen = 'map'; render(); };
+$('#helpers').onclick = () => { if (app.screen !== 'helpers') app.prev = app.screen; app.screen = 'helpers'; render(); };
 $('#brand').onclick = () => { app.screen = 'map'; render(); };
 document.querySelectorAll('.lang button').forEach(b => b.onclick = () => {
   app.lang = b.dataset.l; try { localStorage.setItem('bhh-lang', app.lang); } catch (e) {} render();
@@ -986,7 +1176,10 @@ addEventListener('keyup', e => { if (app.screen === 'mission' && cur().key) cur(
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now; app.t += dt;
-  if (app.screen === 'mission' && W) { sky(); cur().draw(dt); drawSparks(dt); drawCheer(dt); refreshStatus(); }
+  if (app.screen === 'mission' && W) {
+    sky(); cur().draw(dt); drawSparks(dt); drawCheer(dt); refreshStatus();
+    if (app.set.hints && !ms.won && !app.hintOn && app.t - app.lastInput > STUCK_SECONDS) showHint();
+  } else if (app.screen === 'break' && W) { sky(); drawBreak(); drawSparks(dt); }
   requestAnimationFrame(frame);
 }
 render(); requestAnimationFrame(frame);
